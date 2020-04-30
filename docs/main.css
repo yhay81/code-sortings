@@ -1,0 +1,105 @@
+html {
+  min-height: 100%;
+}
+body {
+  width: 100%;
+  background: linear-gradient(to bottom right, #404040, 50%, #333);
+  color: #b0b0b0;
+  font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+}
+fieldset {
+  border: none;
+}
+input[type=number] {
+  max-width: 100px;
+  font-size: 16px;
+  background-color: #333;
+  border-radius: 10px;
+  border: 3px solid #666;
+  box-shadow: 2px 2px 3px rgba(55,84,170,0.05), inset 0px 0px 4px rgba(255,255,255,0), inset 7px 7px 15px rgba(55,84,170,0.05), inset -7px -7px 20px rgba(255,255,255,0.2), 0px 0px 4px rgba(255,255,255,0.1) !important;
+  padding: 5px 15px;
+  outline: none !important;
+  color: #fff;
+  vertical-align: top;
+  margin-top: 8px;
+}
+input::placeholder {
+  color: #c0c0c0;
+}
+button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 50%;
+  background: #333;
+  box-shadow: 6px 6px 12px #1a1a1a, -6px -6px 12px #4d4d4d;
+  margin: 0 10px;
+  position: relative;
+  color: #5090c0;
+}
+button svg {
+  width: 20px;
+  position: absolute;
+  top: 13px;
+  left: 16px;
+}
+header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+header h1 {
+  color: #202020;
+  text-shadow: 1px 1px 1px #555;
+}
+main {
+  width: fit-content;
+  margin: auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+main >div {
+  margin: 10px;
+}
+main #editor {
+  text-shadow: none;
+  border-radius: 6px;
+  width: 600px;
+  height: 600px;
+}
+main .result {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+}
+main .result .settings {
+  padding: 20px;
+  flex: 1;
+}
+main .result .settings .array-pattern {
+  display: inline;
+  margin-right: 8px;
+}
+main .result .settings svg {
+  width: 20px;
+  position: absolute;
+  top: 14.5px;
+  left: 16px;
+}
+main .result .control {
+  padding: 20px;
+  flex: 1;
+}
+main .result .view {
+  flex: 3;
+  border-radius: 6px;
+  background: #333;
+  box-shadow: inset 6px 6px 12px #1a1a1a, inset -6px -6px 12px #4d4d4d;
+}
+main .result .view div {
+  padding: 20px;
+}
+footer {
+  text-align: center;
+}
+

@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "lib": ["dom", "esnext"],
+    "moduleResolution": "node",
+    "module": "esnext",
+    "noEmit": true,
+    "noErrorTruncation": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveConstEnums": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "target": "es2019"
+  },
+  "exclude": ["node_modules"],
+  "include": [
+    "**/*.ts",
+    "src/sortings/shellSort.js",
+    "src/sortings/insertionSort.js"
+  ]
+}
