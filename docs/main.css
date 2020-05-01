@@ -133,7 +133,7 @@ main .description {
 }
 main .description .usage {
   font-weight: bold;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-align: center;
   margin: 0 auto 8px;
 }
@@ -147,6 +147,6 @@ footer a {
 footer a svg {
   vertical-align: bottom;
   width: 16px;
-  margin-right: 4px;
+  margin-right: 3px;
 }
 
