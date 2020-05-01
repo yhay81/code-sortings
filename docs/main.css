@@ -128,10 +128,25 @@ main .result .control {
 }
 main .description {
   margin: 32px;
-  padding: 20px;
+  padding: 12px 20px 20px;
   border: 2px solid #4d4d4d;
+}
+main .description .usage {
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-align: center;
+  margin: 0 auto 8px;
 }
 footer {
   text-align: center;
+}
+footer a {
+  text-decoration: none;
+  color: #b0b0b0;
+}
+footer a svg {
+  vertical-align: bottom;
+  width: 16px;
+  margin-right: 4px;
 }
 
