@@ -1,3 +1,11 @@
+type Picture = {
+  array: number[]
+  i: number
+  j: number
+  temp: number
+  compares: number
+}
+
 export class Film {
   private tape: any[]
   private current: number
@@ -7,14 +15,14 @@ export class Film {
     this.current = 0
   }
 
-  public rec({ array, i, j, temp, compares }): void {
-    const l = this.tape[-1] || { i: 0, j: 0, temp: 0, compares: 0 }
+  public rec({ array, i, j, temp, compares }: Picture): void {
+    const last = this.tape[-1] || { i: 0, j: 0, temp: 0, compares: 0 }
     this.tape.push({
       array: [...array],
-      i: i ?? l.j,
-      j: j ?? l.j,
-      temp: temp ?? l.temp,
-      compares: compares ?? l.compares,
+      i: i ?? last.j,
+      j: j ?? last.j,
+      temp: temp ?? last.temp,
+      compares: compares ?? last.compares,
     })
   }
 
@@ -43,5 +51,9 @@ export class Film {
   }
   public get isStart(): boolean {
     return this.current === 0
+  }
+
+  public get totalCompares(): number {
+    return this.tape[this.length - 1].compares
   }
 }

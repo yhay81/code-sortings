@@ -1,41 +1,57 @@
-html
-  min-height 100%
+// variables
+bg = #333333
+bg-dark = #1a1a1a
+bg-light = #4d4d4d
+text = #b0b0b0
+text-black = #202020
+text-white = #c0c0c0
 
-body
-  width 100%
-  background linear-gradient(to bottom right, #404040, 50%, #333333)
-  color #b0b0b0
-  font-family 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif
+neumorphism(r, concave)
+  -webkit-border-radius r
+  -moz-border-radius r
+  border-radius r
+  background bg
 
-fieldset
-  border none
+  if concave
+    box-shadow inset 6px 6px 12px bg-dark, inset -6px -6px 12px bg-light
+  else
+    box-shadow 6px 6px 12px bg-dark, -6px -6px 12px bg-light
 
-input[type=number]
-  max-width 100px
-  font-size 16px
-  background-color #333333
-  border-radius 10px
-  border 3px solid #666666
-  box-shadow 2px 2px 3px rgba(55, 84, 170, 0.05), inset 0px 0px 4px rgba(255, 255, 255, 0), inset 7px 7px 15px rgba(55, 84, 170, 0.05), inset -7px -7px 20px rgba(255, 255, 255, 0.2), 0px 0px 4px rgba(255, 255, 255, 0.1) !important
-  padding 5px 15px
-  outline none !important
-  color #ffffff
-  vertical-align top
-  margin-top 8px
+neum-text()
+  color text-black
+  text-shadow 1px 1px 1px #555555
+  margin 10px auto
 
-input::placeholder
-  color #c0c0c0
+// parts
+.number-input
+  padding-top 3px
 
-button
+  label
+    position relative
+    top 14px
+    right 10px
+
+  input
+    width 40px
+    padding 5px 15px
+    border 2px solid bg-light
+    neumorphism(6px, true)
+    font-size 16px
+    color white
+    vertical-align top
+    margin-top 8px
+
+    &::placeholder
+      color text-white
+
+.neum-btn
   width 50px
   height 50px
   border none
-  border-radius 50%
-  background #333333
-  box-shadow 6px 6px 12px #1a1a1a, -6px -6px 12px #4d4d4d
+  neumorphism(50%, false)
   margin 0 10px
   position relative
-  color #5090c0
+  color #60a0d0
 
   svg
     width 20px
@@ -43,18 +59,29 @@ button
     top 13px
     left 16px
 
+// main
+html
+  min-height 100%
+  min-width 100%
+
+body
+  width 100%
+  background linear-gradient(to bottom right, bg-light, 50%, bg)
+  color text
+  font-family 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif
+
 header
   text-align center
-  margin-bottom 32px
+  margin-bottom 42px
 
   h1
-    color #202020
-    text-shadow 1px 1px 1px #555
+    neum-text()
 
 main
   width fit-content
   margin auto
   display flex
+  justify-content center
   flex-wrap wrap
 
   >div
@@ -71,33 +98,50 @@ main
     flex-direction column
     text-align center
     padding 20px
+    width 600px
 
     .settings
       padding 20px
       flex 1
 
-      .array-pattern
-        display inline
-        margin-right 8px
+      .array-patterns
+        border none
 
-      svg
-        width 20px
-        position absolute
-        top 14.5px
-        left 16px
+        .array-pattern
+          display inline
+          margin-right 8px
+
+          input
+            vertical-align text-bottom
+            margin-right 5px
+
+      .generate
+        display flex
+        justify-content center
+
+        .neum-btn
+          margin-left 16px
+
+          svg
+            top 14.5px
+            left 16px
+
+    .view
+      flex 3
+      neumorphism(6px, true)
+
+      div
+        padding 20px
 
     .control
       padding 20px
       flex 1
+      display flex
 
-    .view
-      flex 3
-      border-radius 6px
-      background #333333
-      box-shadow inset 6px 6px 12px #1a1a1a, inset -6px -6px 12px #4d4d4d
-
-      div
-        padding 20px
+  .description
+    margin 32px
+    padding 20px
+    border 2px solid bg-light
 
 footer
   text-align center

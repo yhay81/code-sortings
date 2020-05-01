@@ -8,9 +8,8 @@
     "node": true,
     "browser": true
   },
-  "plugins": ["prettier", "@typescript-eslint"],
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "prettier/prettier": "error",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/member-delimiter-style": [
       "error",
@@ -26,9 +25,8 @@
   },
   "extends": [
     "eslint:recommended",
-    "plugin:prettier/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended"
   ],
-  "ignorePatterns": ["public/bundle.js", "node_modules/"]
+  "ignorePatterns": ["docs", "node_modules/"]
 }

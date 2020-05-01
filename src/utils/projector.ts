@@ -1,33 +1,32 @@
-import * as d3 from 'd3'
+import { select } from 'd3-selection'
+import { Film } from './film'
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((r) => setTimeout(r, ms))
 
 export class Projector {
-  film: any
-  running: boolean
-  stop: boolean
+  public film: Film | null
+  public playing: boolean
+
+  constructor() {
+    this.film = null
+    this.playing = false
+  }
 
   show(): void {
+    if (this.film === null) return
     const { array, compares, i, j, temp, greens = [] } = this.film.picture
-    const stepsNode = document.getElementById('steps')
-    stepsNode.innerHTML = `How Many Comparing: ${compares} / ${
-      this.film.tape[this.film.length - 1].compares
-    }`
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const stepsNode = document.getElementById('steps')!
+    stepsNode.innerHTML = `${compares} / ${this.film.totalCompares}`
     const W = 480
     const H = 200
     const BAR_W = W / (array.length + 1) - 1
     const BAR_H = H / Math.max(...array)
     const arrayPlus = [...array, temp]
 
-    d3.select('#log').select('svg').remove()
-
-    const svg = d3
-      .select('#log')
-      .append('svg')
-      .attr('width', W)
-      .attr('height', H)
-
+    select('#log').select('svg').remove()
+    const svg = select('#log').append('svg').attr('width', W).attr('height', H)
     svg
       .selectAll('rect')
       .data(arrayPlus)
@@ -66,30 +65,28 @@ export class Projector {
     }
   }
 
-  async autoPlay(speed = 100): Promise<void> {
-    if (this.running) return
-    this.stop = false
-    this.running = true
-    for (; !this.film.isEnd && !this.stop; this.film.forward()) {
+  async autoPlay(speedInputEl: HTMLInputElement): Promise<void> {
+    if (this.film === null || this.playing) return
+    this.playing = true
+    for (; !this.film.isEnd && this.playing; this.film.forward()) {
       this.show()
-      await sleep(speed)
+      await sleep(2000 / Math.sqrt(parseInt(speedInputEl.value) || 1))
     }
-    this.stop = true
-    this.running = false
+    this.playing = false
   }
 
   stopPlay(): void {
-    this.stop = true
+    this.playing = false
   }
 
   back(): void {
-    if (this.film.isStart) return
+    if (this.film === null || this.film.isStart) return
     this.film.back()
     this.show()
   }
 
   forward(): void {
-    if (this.film.isEnd) return
+    if (this.film === null || this.film.isEnd) return
     this.film.forward()
     this.show()
   }
