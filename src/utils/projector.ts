@@ -18,7 +18,7 @@ export class Projector {
     const { array, compares, i, j, temp, greens = [] } = this.film.picture
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const stepsNode = document.getElementById('steps')!
-    stepsNode.innerHTML = `${compares} / ${this.film.totalCompares}`
+    stepsNode.innerHTML = `${compares} / ${this.film.totalCompares}  time: ${this.film.time}μs`
     const W = 480
     const H = 200
     const BAR_W = W / (array.length + 1) - 1

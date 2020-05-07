@@ -64,6 +64,11 @@ window.onload = (): void => {
     const film = new Film()
     const array = createArray(count, pattern)
     sort(array, film)
+    const startTime = new Date() as any
+    ;[...Array(1000)].forEach(() => {
+      sort(createArray(count, pattern), new Film())
+    })
+    film.time = (new Date() as any) - startTime
     projector.film = film
     projector.show()
   }

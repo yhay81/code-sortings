@@ -10,10 +10,12 @@ type Picture = {
 export class Film {
   private tape: any[]
   private current: number
+  public time: number | null
 
   constructor() {
     this.tape = []
     this.current = 0
+    this.time = null
   }
 
   public rec({ array, i, j, temp, compares, greens }: Picture): void {
