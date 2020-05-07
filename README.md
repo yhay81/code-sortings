@@ -21,7 +21,7 @@ npm run serve
 
 ISSUE/PR を歓迎します！
 
-1. Fork it ( http://github.com/yhay81/code-sotings/fork )
+1. Fork it ( http://github.com/yhay81/code-sortings/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
@@ -29,4 +29,4 @@ ISSUE/PR を歓迎します！
 
 ## Licence
 
-[MIT](https://github.com/yhay81/coding-sotings/blob/master/LICENCE)
+[MIT](https://github.com/yhay81/code-sortings/blob/master/LICENCE)
