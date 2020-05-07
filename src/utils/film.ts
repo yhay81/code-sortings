@@ -15,14 +15,15 @@ export class Film {
     this.current = 0
   }
 
-  public rec({ array, i, j, temp, compares }: Picture): void {
-    const last = this.tape[-1] || { i: 0, j: 0, temp: 0, compares: 0 }
+  public rec({ array, i, j, temp, compares, greens }: Picture): void {
+    const last = this.tape[-1] || { i: 0, j: 0, temp: 0, compares: 0, greens:[] }
     this.tape.push({
       array: [...array],
       i: i ?? last.j,
       j: j ?? last.j,
       temp: temp ?? last.temp,
       compares: compares ?? last.compares,
+      greens: greens ?? last.greens,
     })
   }
 
