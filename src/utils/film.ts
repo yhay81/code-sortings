@@ -4,6 +4,7 @@ type Picture = {
   j: number
   temp: number
   compares: number
+  greens: number[]
 }
 
 export class Film {
@@ -16,7 +17,13 @@ export class Film {
   }
 
   public rec({ array, i, j, temp, compares, greens }: Picture): void {
-    const last = this.tape[-1] || { i: 0, j: 0, temp: 0, compares: 0, greens:[] }
+    const last = this.tape[-1] || {
+      i: 0,
+      j: 0,
+      temp: 0,
+      compares: 0,
+      greens: [],
+    }
     this.tape.push({
       array: [...array],
       i: i ?? last.j,

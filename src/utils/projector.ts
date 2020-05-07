@@ -43,7 +43,7 @@ export class Projector {
           return 'red'
         } else if (n == i) {
           return 'green'
-        } else if (greens.includes(i)) {
+        } else if (greens.includes(n)) {
           return 'OliveDrab'
         } else {
           return 'turquoise'
