@@ -18,7 +18,7 @@ export class Projector {
     const { array, compares, i, j, temp, greens = [] } = this.film.picture
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const stepsNode = document.getElementById('steps')!
-    stepsNode.innerHTML = `${compares} / ${this.film.totalCompares}  time: ${this.film.time}μs`
+    stepsNode.innerHTML = `${compares} / ${this.film.totalCompares}`
     const W = 480
     const H = 200
     const BAR_W = W / (array.length + 1) - 1
@@ -60,7 +60,7 @@ export class Projector {
         .attr('text-anchor', 'middle')
         .attr('x', (_, n) => n * (BAR_W + 1) + BAR_W / 2)
         .attr('y', (d: number) => H - d * BAR_H + BAR_W / 1.5)
-        .attr('font-size', () => BAR_W / 2 + 'px')
+        .attr('font-size', () => (BAR_W / 2).toString() + 'px')
         .attr('fill', 'white')
     }
   }

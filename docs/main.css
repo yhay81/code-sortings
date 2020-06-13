@@ -44,7 +44,7 @@
 }
 html {
   min-height: 100%;
-  min-width: 100%;
+  min-width: fit-content;
 }
 body {
   width: 100%;
@@ -120,6 +120,9 @@ main .result .view {
 }
 main .result .view div {
   padding: 20px;
+}
+main .result .view #log {
+  height: 200px;
 }
 main .result .control {
   padding: 20px;

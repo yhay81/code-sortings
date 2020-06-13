@@ -3,22 +3,21 @@ import { createArray } from './utils/initialArray'
 import { Projector } from './utils/projector'
 import { Film } from './utils/film'
 import './style.styl'
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore
-import ace from 'ace-builds/src-min-noconflict/ace'
-import 'ace-builds/src-min-noconflict/ext-language_tools'
+import ace from 'brace'
+import 'brace/mode/javascript'
+import 'brace/theme/monokai'
+import 'brace/ext/language_tools'
 
-window.onload = (): void => {
+window.onload = () => {
   const projector = new Projector()
-  // eslint-disable-next-line prefer-const
-  let sort: any // sortは事前に一度行う（撮影）
+  let sort: (array: number[], film: Film) => void // sortは事前に一度行う（撮影）
 
   const countInput = document.getElementById('length') as HTMLInputElement
   const speedInputEl = document.getElementById('speed') as HTMLInputElement
 
-  ace.require('ace/ext/language_tools')
+  ace.acequire('ace/ext/language_tools')
   const editor = ace.edit('editor')
-  ace.config.set('basePath', '/ace-builds/src-min-noconflict')
+  editor.$blockScrolling = Infinity
   editor.setOptions({
     highlightActiveLine: true,
     highlightSelectedWord: true,
@@ -64,21 +63,16 @@ window.onload = (): void => {
     const film = new Film()
     const array = createArray(count, pattern)
     sort(array, film)
-    const startTime = new Date() as any
-    ;[...Array(1000)].forEach(() => {
-      sort(createArray(count, pattern), new Film())
-    })
-    film.time = (new Date() as any) - startTime
     projector.film = film
     projector.show()
   }
 
-  window.addEventListener('keydown', (e: any): void => {
+  window.addEventListener('keydown', (e): void => {
     const [SPACE, LEFT, RIGHT] = [32, 37, 39]
     switch (e.keyCode) {
       case SPACE:
         if (projector.playing) projector.stopPlay()
-        else projector.autoPlay(speedInputEl)
+        else void projector.autoPlay(speedInputEl)
         break
       case LEFT:
         projector.back()
@@ -91,7 +85,7 @@ window.onload = (): void => {
 
   const startButton = document.getElementById('start-button')!
   startButton.addEventListener('click', () => {
-    projector.autoPlay(speedInputEl)
+    void projector.autoPlay(speedInputEl)
   })
 
   const stopButton = document.getElementById('stop-button')!

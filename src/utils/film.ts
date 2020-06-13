@@ -7,15 +7,22 @@ type Picture = {
   greens: number[]
 }
 
+type Tape = {
+  array: number[]
+  i: number
+  j: number
+  temp: number
+  compares: number
+  greens: number[]
+}
+
 export class Film {
-  private tape: any[]
+  private tape: Tape[]
   private current: number
-  public time: number | null
 
   constructor() {
     this.tape = []
     this.current = 0
-    this.time = null
   }
 
   public rec({ array, i, j, temp, compares, greens }: Picture): void {
@@ -36,7 +43,7 @@ export class Film {
     })
   }
 
-  public get picture(): any {
+  public get picture(): Tape {
     return this.tape[this.current]
   }
 
