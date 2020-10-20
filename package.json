@@ -46,7 +46,7 @@
     "pug": "^3.0.0",
     "pug-loader": "^2.4.0",
     "serve-favicon": "^2.5.0",
-    "stylus": "^0.54.7",
+    "stylus": "^0.54.8",
     "stylus-loader": "^3.0.2",
     "ts-loader": "^7.0.5",
     "typescript": "^3.9.5",
