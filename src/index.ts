@@ -57,7 +57,7 @@ window.onload = () => {
     ) as HTMLInputElement).value
     const count = parseInt(countInput.value ? countInput.value : '20')
     if (count > 300) {
-      countInput.value == '>300 is not allowed'
+      countInput.value = '>300 is not allowed'
       return
     }
     const film = new Film()

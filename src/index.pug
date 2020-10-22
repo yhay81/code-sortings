@@ -26,11 +26,13 @@ html(lang='ja')
 
       .result
         .settings
-          fieldset.array-patterns
-            +array_type('random', 'Random', true)
-            +array_type('nearly-sorted', 'Nearly Sorted')
-            +array_type('reversed', 'Reversed')
-            +array_type('few-unique', 'Few Unique')
+          fieldset
+            legend Array Patterns
+            .array-patterns
+              +array_type('random', 'Random', true)
+              +array_type('nearly-sorted', 'Nearly Sorted')
+              +array_type('reversed', 'Reversed')
+              +array_type('few-unique', 'Few Unique')
           .generate
             .number-input
               label(for="length") Length: 

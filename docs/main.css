@@ -102,6 +102,7 @@ main .result .settings .array-patterns .array-pattern input {
 main .result .settings .generate {
   display: flex;
   justify-content: center;
+  margin: 12px;
 }
 main .result .settings .generate .neum-btn {
   margin-left: 16px;
