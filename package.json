@@ -9,7 +9,7 @@
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
   "main": "dev-server.js",
   "scripts": {
-    "build": "webpack --progress --colors --mode='production'",
+    "build": "webpack --progress --color --mode='production'",
     "fix": "rm -rf node_modules package-lock.json && npm run update && npm run sort && npm i && npm run fmt && npm run lint",
     "fmt": "prettier --write src",
     "lint": "eslint --fix --ext .ts src",
@@ -22,6 +22,12 @@
     "hooks": {
       "pre-commit": "npm run fmt && npm run lint && npm run build"
     }
+  },
+  "lint-staged": {
+    "*.@ts": [
+      "npm run lint",
+      "npm run fmt"
+    ]
   },
   "prettier": {
     "semi": false,
@@ -37,9 +43,13 @@
     "@typescript-eslint/parser": "^4.5.0",
     "css-loader": "^5.0.0",
     "eslint": "^7.11.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-simple-import-sort": "^5.0.3",
+    "eslint-plugin-unicorn": "^23.0.0",
     "express": "^4.17.1",
     "html-webpack-plugin": "^4.5.0",
     "husky": "^4.3.0",
+    "lint-staged": "^10.4.2",
     "mini-css-extract-plugin": "^1.1.1",
     "nodemon": "^2.0.6",
     "prettier": "^2.1.2",

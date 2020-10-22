@@ -17,7 +17,7 @@ export class Projector {
     if (this.film === null) return
     const { array, compares, i, j, temp, greens = [] } = this.film.picture
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const stepsNode = document.getElementById('steps')!
+    const stepsNode = document.querySelector('#steps')!
     stepsNode.innerHTML = `${compares} / ${this.film.totalCompares}`
     const W = 480
     const H = 200
@@ -65,12 +65,14 @@ export class Projector {
     }
   }
 
-  async autoPlay(speedInputEl: HTMLInputElement): Promise<void> {
+  async autoPlay(speedInputElement: HTMLInputElement): Promise<void> {
     if (this.film === null || this.playing) return
     this.playing = true
     for (; !this.film.isEnd && this.playing; this.film.forward()) {
       this.show()
-      await sleep(2000 / Math.sqrt(parseInt(speedInputEl.value) || 1))
+      await sleep(
+        2000 / Math.sqrt(Number.parseInt(speedInputElement.value) || 1)
+      )
     }
     this.playing = false
   }

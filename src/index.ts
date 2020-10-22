@@ -8,12 +8,12 @@ import 'brace/mode/javascript'
 import 'brace/theme/monokai'
 import 'brace/ext/language_tools'
 
-window.onload = () => {
+window.addEventListener('load', () => {
   const projector = new Projector()
   let sort: (array: number[], film: Film) => void // sortは事前に一度行う（撮影）
 
-  const countInput = document.getElementById('length') as HTMLInputElement
-  const speedInputEl = document.getElementById('speed') as HTMLInputElement
+  const countInput = document.querySelector('#length') as HTMLInputElement
+  const speedInputElement = document.querySelector('#speed') as HTMLInputElement
 
   ace.acequire('ace/ext/language_tools')
   const editor = ace.edit('editor')
@@ -55,7 +55,7 @@ window.onload = () => {
     const pattern = (document.querySelector(
       'input[name="array-pattern"]:checked'
     ) as HTMLInputElement).value
-    const count = parseInt(countInput.value ? countInput.value : '20')
+    const count = Number.parseInt(countInput.value ? countInput.value : '20')
     if (count > 300) {
       countInput.value = '>300 is not allowed'
       return
@@ -67,12 +67,12 @@ window.onload = () => {
     projector.show()
   }
 
-  window.addEventListener('keydown', (e): void => {
-    const [SPACE, LEFT, RIGHT] = [32, 37, 39]
-    switch (e.keyCode) {
+  window.addEventListener('keydown', (event): void => {
+    const [SPACE, LEFT, RIGHT] = [' ', 'ArrowLeft', 'ArrowRight']
+    switch (event.key) {
       case SPACE:
         if (projector.playing) projector.stopPlay()
-        else void projector.autoPlay(speedInputEl)
+        else void projector.autoPlay(speedInputElement)
         break
       case LEFT:
         projector.back()
@@ -83,38 +83,38 @@ window.onload = () => {
     }
   })
 
-  const startButton = document.getElementById('start-button')!
+  const startButton = document.querySelector('#start-button')!
   startButton.addEventListener('click', () => {
-    void projector.autoPlay(speedInputEl)
+    void projector.autoPlay(speedInputElement)
   })
 
-  const stopButton = document.getElementById('stop-button')!
+  const stopButton = document.querySelector('#stop-button')!
   stopButton.addEventListener('click', () => {
     projector.stopPlay()
   })
 
-  const backButton = document.getElementById('back-button')!
+  const backButton = document.querySelector('#back-button')!
   backButton.addEventListener('click', () => {
     projector.back()
   })
 
-  const forwardButton = document.getElementById('forward-button')!
+  const forwardButton = document.querySelector('#forward-button')!
   forwardButton.addEventListener('click', () => {
     projector.forward()
   })
 
-  const resetButton = document.getElementById('reset-button')!
+  const resetButton = document.querySelector('#reset-button')!
   resetButton.addEventListener('click', () => {
     projector.stopPlay()
     if (projector.film) projector.film.reset()
     projector.show()
   })
 
-  const generateButton = document.getElementById('generate-button')!
+  const generateButton = document.querySelector('#generate-button')!
   generateButton.addEventListener('click', () => {
     projector.stopPlay()
     reset()
   })
 
   reset()
-}
+})
