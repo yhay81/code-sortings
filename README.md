@@ -12,9 +12,8 @@ https://sort.webv.jp
 
 ```sh
 git clone git@github.com:yhay81/code-sortings.git
-npm i
-npm run start &
-npm run serve
+yarn install
+npm run dev
 ```
 
 ## Contribution

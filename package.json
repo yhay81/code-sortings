@@ -9,8 +9,8 @@
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
   "main": "dev-server.js",
   "scripts": {
-    "build": "webpack --progress --color --mode='production'",
-    "dev": "webpack --watch --progress --color & yarn start",
+    "build": "webpack --progress --color",
+    "dev": "webpack --watch --progress --color --mode='development' & yarn start",
     "fix": "rm -rf node_modules package-lock.json && yarn update && npx sort-package-json && yarn install && yarn fmt && yarn lint",
     "fmt": "prettier --write src",
     "lint": "eslint --fix --ext .ts src",
