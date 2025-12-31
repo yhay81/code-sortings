@@ -1,6 +1,6 @@
 {
   "name": "code-sorting",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "Code sorting algorithms!",
   "repository": {
     "type": "git"
@@ -9,43 +9,34 @@
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
   "main": "dev-server.js",
   "scripts": {
-    "build": "webpack --progress --color",
-    "dev": "webpack --watch --progress --color --mode='development' & yarn start",
-    "fix": "rm -rf node_modules package-lock.json && yarn update && npx sort-package-json && yarn install && yarn fmt && yarn lint",
+    "build": "rm -rf ./dist && mkdir -p ./dist && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico",
+    "dev": "rm -rf ./dist && mkdir -p ./dist && cp ./src/index.html ./dist/index.html && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
+    "fix": "rm -rf node_modules bun.lockb package-lock.json yarn.lock && bun run update && bunx sort-package-json && bun install && bun run fmt && bun run lint",
     "fmt": "prettier --write src",
     "lint": "eslint --fix --ext .ts src",
+    "prepare": "husky",
     "start": "nodemon dev-server.js",
-    "update": "npx npm-check-updates -u",
-    "prepare": "husky install"
+    "update": "bunx npm-check-updates -u"
   },
   "dependencies": {
-    "brace": "^0.11.1",
-    "d3-selection": "^3.0.0"
+    "codejar": "^4.3.0",
+    "d3-selection": "^3.0.0",
+    "highlight.js": "^11.11.1"
   },
   "devDependencies": {
-    "@types/d3": "^7.1.0",
-    "@typescript-eslint/eslint-plugin": "^5.12.0",
-    "@typescript-eslint/parser": "^5.12.0",
-    "css-loader": "^6.6.0",
-    "eslint": "^8.9.0",
-    "eslint-config-prettier": "^8.4.0",
-    "eslint-plugin-jsx-a11y": "^6.5.1",
-    "eslint-plugin-simple-import-sort": "^7.0.0",
-    "express": "^4.17.3",
-    "html-webpack-plugin": "^5.5.0",
-    "husky": "^7.0.4",
-    "lint-staged": "^12.3.4",
-    "mini-css-extract-plugin": "^2.5.3",
-    "nodemon": "^2.0.15",
-    "prettier": "^2.5.1",
-    "pug": "^3.0.2",
-    "pug-loader": "^2.4.0",
-    "serve-favicon": "^2.5.0",
-    "stylus": "^0.56.0",
-    "stylus-loader": "^6.2.0",
-    "ts-loader": "^9.2.6",
-    "typescript": "^4.5.5",
-    "webpack": "^5.69.1",
-    "webpack-cli": "^4.9.2"
+    "@types/d3": "^7.4.3",
+    "@typescript-eslint/eslint-plugin": "^8.51.0",
+    "@typescript-eslint/parser": "^8.51.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "express": "^5.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.7.4",
+    "serve-favicon": "^2.5.1",
+    "typescript": "^5.9.3"
   }
 }

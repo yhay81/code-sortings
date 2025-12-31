@@ -1,10 +1,10 @@
 interface Picture {
   array: number[];
-  i: number;
-  j: number;
-  temp: number;
-  compares: number;
-  greens: number[];
+  i?: number;
+  j?: number;
+  temp?: number;
+  compares?: number;
+  greens?: number[];
 }
 
 interface Tape {
@@ -27,7 +27,8 @@ export class Film {
   }
 
   public rec({ array, i, j, temp, compares, greens }: Picture): void {
-    const last = this.tape[-1] || {
+    const last: Tape = this.tape[this.tape.length - 1] ?? {
+      array: [],
       i: 0,
       j: 0,
       temp: 0,
@@ -36,11 +37,11 @@ export class Film {
     };
     this.tape.push({
       array: [...array],
-      i: i ?? last.j,
+      i: i ?? last.i,
       j: j ?? last.j,
       temp: temp ?? last.temp,
       compares: compares ?? last.compares,
-      greens: greens ?? last.greens,
+      greens: [...(greens ?? last.greens)],
     });
   }
 
@@ -65,7 +66,7 @@ export class Film {
   }
 
   public get isEnd(): boolean {
-    return this.current === this.length;
+    return this.length === 0 ? true : this.current >= this.length - 1;
   }
 
   public get isStart(): boolean {
@@ -73,6 +74,7 @@ export class Film {
   }
 
   public get totalCompares(): number {
+    if (this.length === 0) return 0;
     return this.tape[this.length - 1].compares;
   }
 }

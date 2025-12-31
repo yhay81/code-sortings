@@ -31,9 +31,11 @@ const generators: Record<string, (count: number) => number[]> = {
     shuffle(
       new Array(count)
         .fill(null)
-        .map((_, index) => Math.ceil((5 * (index + 1)) / count))
+        .map((_, index) => Math.ceil((5 * (index + 1)) / count)),
     ),
 };
 
-export const createArray = (count: number, pattern: string): number[] =>
-  generators[pattern](count);
+export const createArray = (count: number, pattern: string): number[] => {
+  const generator = generators[pattern] ?? generators.random;
+  return generator(count);
+};

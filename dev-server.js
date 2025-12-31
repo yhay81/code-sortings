@@ -3,9 +3,9 @@ const path = require("path");
 const app = express();
 app.disable("x-powered-by");
 const port = process.env.PORT || 4000;
-app.use(require("serve-favicon")(path.join(__dirname + "/docs/favicon.ico")));
-app.use(express.static(path.join(__dirname + "/docs/")));
+app.use(require("serve-favicon")(path.join(__dirname + "/dist/favicon.ico")));
+app.use(express.static(path.join(__dirname + "/dist/")));
 app.get("/", (_, res) =>
-  res.sendFile(path.join(__dirname + "/docs/index.html"))
+  res.sendFile(path.join(__dirname + "/dist/index.html"))
 );
 app.listen(port, () => console.log(`running on http://localhost:${port}`));
