@@ -126,6 +126,15 @@ class TraceRecorder:
         if self.enabled:
             self.branch = "right"
 
+    def on_branch(
+        self,
+        _code: types.CodeType,
+        _offset: int,
+        _destination: int,
+    ) -> None:
+        if self.enabled:
+            self.branch = "right"
+
     def read(self, index: int, value: int | float) -> None:
         if self.enabled:
             self.operations.append(
@@ -367,41 +376,47 @@ def _install_monitoring(
     code_objects: list[types.CodeType],
 ) -> None:
     monitoring = sys.monitoring
+    events = monitoring.events
     if monitoring.get_tool(TOOL_ID) is not None:
         monitoring.free_tool_id(TOOL_ID)
     monitoring.use_tool_id(TOOL_ID, "code-sortings")
     monitoring.register_callback(
         TOOL_ID,
-        monitoring.events.LINE,
+        events.LINE,
         recorder.on_line,
     )
     monitoring.register_callback(
         TOOL_ID,
-        monitoring.events.PY_START,
+        events.PY_START,
         recorder.on_start,
     )
     monitoring.register_callback(
         TOOL_ID,
-        monitoring.events.PY_RETURN,
+        events.PY_RETURN,
         recorder.on_return,
     )
-    monitoring.register_callback(
-        TOOL_ID,
-        monitoring.events.BRANCH_LEFT,
-        recorder.on_branch_left,
-    )
-    monitoring.register_callback(
-        TOOL_ID,
-        monitoring.events.BRANCH_RIGHT,
-        recorder.on_branch_right,
-    )
-    event_set = (
-        monitoring.events.LINE
-        | monitoring.events.PY_START
-        | monitoring.events.PY_RETURN
-        | monitoring.events.BRANCH_LEFT
-        | monitoring.events.BRANCH_RIGHT
-    )
+    branch_events = 0
+    if hasattr(events, "BRANCH_LEFT"):
+        monitoring.register_callback(
+            TOOL_ID,
+            events.BRANCH_LEFT,
+            recorder.on_branch_left,
+        )
+        monitoring.register_callback(
+            TOOL_ID,
+            events.BRANCH_RIGHT,
+            recorder.on_branch_right,
+        )
+        branch_events = events.BRANCH_LEFT | events.BRANCH_RIGHT
+    elif hasattr(events, "BRANCH"):
+        monitoring.register_callback(
+            TOOL_ID,
+            events.BRANCH,
+            recorder.on_branch,
+        )
+        branch_events = events.BRANCH
+
+    event_set = events.LINE | events.PY_START | events.PY_RETURN | branch_events
     for code_object in code_objects:
         monitoring.set_local_events(TOOL_ID, code_object, event_set)
 
