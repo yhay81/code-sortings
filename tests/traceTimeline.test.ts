@@ -74,4 +74,19 @@ describe("TraceTimeline", () => {
     expect(timeline.picture.array).toEqual([3, 1, 2]);
     expect(timeline.picture.compares).toBe(0);
   });
+
+  test("seek moves directly in both directions", () => {
+    const timeline = new TraceTimeline(result);
+
+    timeline.seek(2);
+    expect(timeline.position).toBe(2);
+    expect(timeline.picture.array).toEqual([1, 2, 3]);
+
+    timeline.seek(1);
+    expect(timeline.position).toBe(1);
+    expect(timeline.picture.array).toEqual([1, 3, 2]);
+
+    timeline.seek(999);
+    expect(timeline.position).toBe(2);
+  });
 });

@@ -57,6 +57,9 @@ export interface TracePicture {
   array: number[];
   reads: number[];
   writes: number[];
+  readOperations: ReadOperation[];
+  writeOperations: WriteOperation[];
+  markOperations: MarkOperation[];
   sorted: number[];
   line: number;
   functionName: string;
@@ -92,6 +95,9 @@ export class TraceTimeline {
         array: [...this.array],
         reads: [],
         writes: [],
+        readOperations: [],
+        writeOperations: [],
+        markOperations: [],
         sorted: [...this.sortedIndices],
         line: 0,
         functionName: "sort",
@@ -105,6 +111,15 @@ export class TraceTimeline {
       array: [...this.array],
       reads: uniqueIndices(event.operations, "read"),
       writes: uniqueIndices(event.operations, "write"),
+      readOperations: event.operations.filter(
+        (operation): operation is ReadOperation => operation.type === "read",
+      ),
+      writeOperations: event.operations.filter(
+        (operation): operation is WriteOperation => operation.type === "write",
+      ),
+      markOperations: event.operations.filter(
+        (operation): operation is MarkOperation => operation.type === "mark",
+      ),
       sorted: [...this.sortedIndices],
       line: event.line,
       functionName: event.function,
@@ -139,6 +154,15 @@ export class TraceTimeline {
     this.array.splice(0, this.array.length, ...this.initial);
     this.sortedIndices.clear();
     this.current = 0;
+  }
+
+  public seek(position: number): void {
+    const target = Math.min(
+      this.events.length,
+      Math.max(0, Math.round(position)),
+    );
+    while (this.current < target) this.forward();
+    while (this.current > target) this.back();
   }
 
   public get isEnd(): boolean {
