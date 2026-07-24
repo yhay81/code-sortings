@@ -347,6 +347,8 @@ main > div {
   font-size: 14px;
   line-height: 1.6;
   overflow: auto;
+  white-space: pre !important;
+  overflow-wrap: normal !important;
   tab-size: 2;
   min-height: 0;
 }
@@ -596,6 +598,12 @@ main > div {
   border-color: rgba(211, 98, 79, 0.45);
 }
 
+.error-log[data-state="working"] {
+  background: #eef8f8;
+  color: var(--accent);
+  border-color: rgba(13, 124, 134, 0.32);
+}
+
 .result .control {
   padding: 0 20px;
   flex: 1;
@@ -682,23 +690,23 @@ main > div {
 }
 
 .legend-swatch--i {
-  background: green;
+  background: var(--bar-focus);
 }
 
 .legend-swatch--j {
-  background: red;
+  background: var(--bar-compare);
 }
 
 .legend-swatch--temp {
-  background: DarkRed;
+  background: var(--bar-temp);
 }
 
 .legend-swatch--greens {
-  background: OliveDrab;
+  background: var(--bar-sorted);
 }
 
 .legend-swatch--default {
-  background: turquoise;
+  background: var(--bar-default);
 }
 
 footer {

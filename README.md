@@ -2,49 +2,65 @@
 
 ## Description
 
-code-sotings は自分のオリジナルソートアルゴリズムをコーディングし、動作をグラフで確認できる Web アプリです。
-画面の配色と余白を調整し、コードとグラフの視認性を高めています。
-主要な操作が分かりやすいようにパネル構成と操作ボタンを整理しています。
-広い画面ではエディターとグラフを左右に配置します。
-サンプルのソート（挿入ソート/シェルソート/バブルソート/選択ソート/クイックソート/マージソート/ヒープソート/カクテルソート）を選択して読み込めます。
-実行エラーは画面内のログに表示されます。
-グラフ上部に i/j/temp の数値を表示し、Space/←/→で再生操作ができます。
-以下リンク先(GitHub Pages)から利用できます。
-https://sort.yusuke-hayashi.com
-main ブランチへの push で GitHub Actions から自動デプロイされます。
-ビルド成果物は dist/ に出力され、GitHub Pages は dist/ を配信します。
-配列の長さは 3〜300 の範囲に補正されます。
-再生速度は 1 以上の数値を入力してください。
-配列の値が 0 以下または数値でない場合、グラフは 0 として描画します。
-入力したコードはブラウザ上で実行されるため、信頼できるコードのみ利用してください。
+code-sortings は、Pythonで書いたソートアルゴリズムの動きをブラウザ上で確認できるWebアプリです。
+
+ユーザーは通常のPythonとして `def sort(array):` を定義します。アプリが渡すlist互換の追跡配列が、添字の読み取り、比較、代入、交換を自動的に記録するため、可視化用のコードを手で追加する必要はありません。
+
+```python
+def sort(array):
+    for end in range(len(array) - 1, 0, -1):
+        for i in range(end):
+            if array[i] > array[i + 1]:
+                array[i], array[i + 1] = array[i + 1], array[i]
+```
+
+サンプルとして、挿入・シェル・バブル・選択・クイック・マージ・ヒープ・カクテルソートを収録しています。
+
+公開版: https://sort.yusuke-hayashi.com
+
+## Runtime
+
+- PythonはPyodideを使い、専用Web Worker内で実行します。
+- 実行が15秒を超えるとWorkerを破棄して停止します。
+- 可視化イベントは最大100,000件です。
+- 長い実行は最大5,000フレームへ差分を保ったまま圧縮します。
+- 配列の長さは3〜300へ補正されます。
+- 配列の長さ変更や有限数値以外の代入はエラーになります。
+- 初回のみPythonエンジンのダウンロードに時間がかかる場合があります。
+
+PyodideからはWeb APIへアクセスできるため、信頼できるPythonコードだけを実行してください。WorkerはUI停止を防ぐための実行境界であり、敵対的コードに対する完全なセキュリティサンドボックスではありません。
+
+## Optional visualization hints
+
+通常の添字操作だけで可視化できます。必要な場合だけ以下の補助APIを利用できます。
+
+```python
+array.swap(i, j)
+array.mark_sorted(i)
+array.unmark_sorted(i)
+array.note("pivot", pivot)
+```
 
 ## Development
 
-以下コマンドで http://localhost:4000 で利用できます。
-バンドルは Bun を利用します。Bun は未導入の場合はインストールしてください。
+BunとPython 3.12以降を利用します。
 
 ```sh
 git clone git@github.com:yhay81/code-sortings.git
+cd code-sortings
 bun install
 bun run dev
 ```
 
-本番ビルドは以下です。
+本番ビルドと品質チェック:
 
 ```sh
+bun run check
 bun run build
 ```
 
-## Contribution
-
-ISSUE/PR を歓迎します！
-
-1. Fork it ( http://github.com/yhay81/code-sortings/fork )
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Add some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create new Pull Request
+`main`ブランチへのpushで、GitHub ActionsからGitHub Pagesへ自動デプロイされます。
 
 ## Licence
 
-[MIT](https://github.com/yhay81/code-sortings/blob/master/LICENCE)
+[MIT](https://github.com/yhay81/code-sortings/blob/main/LICENCE)

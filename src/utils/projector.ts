@@ -1,21 +1,24 @@
 import { select } from "d3-selection";
-import type { Film } from "./film";
+import type { TraceTimeline } from "./traceTimeline";
 
 const sleep = async (ms: number): Promise<void> =>
-  new Promise((r) => setTimeout(r, ms));
+  new Promise((resolve) => window.setTimeout(resolve, ms));
 
 export class Projector {
-  public film: Film | null;
+  public timeline: TraceTimeline | null;
 
   public playing: boolean;
 
+  private playGeneration: number;
+
   constructor() {
-    this.film = null;
+    this.timeline = null;
     this.playing = false;
+    this.playGeneration = 0;
   }
 
   show(): void {
-    if (this.film === null) return;
+    if (this.timeline === null) return;
     const stepsNode = document.querySelector("#steps")!;
     const indicesElement = document.querySelector<HTMLSpanElement>("#indices");
     const logElement = document.querySelector<HTMLDivElement>("#log");
@@ -23,9 +26,9 @@ export class Projector {
     const rootStyle = getComputedStyle(document.documentElement);
     const colors = {
       base: rootStyle.getPropertyValue("--bar-default").trim() || "#47c6bd",
-      focus: rootStyle.getPropertyValue("--bar-focus").trim() || "#8fe28a",
+      read: rootStyle.getPropertyValue("--bar-focus").trim() || "#8fe28a",
       compare: rootStyle.getPropertyValue("--bar-compare").trim() || "#e8645a",
-      temp: rootStyle.getPropertyValue("--bar-temp").trim() || "#f3b562",
+      write: rootStyle.getPropertyValue("--bar-temp").trim() || "#f3b562",
       sorted: rootStyle.getPropertyValue("--bar-sorted").trim() || "#7fbf7f",
     };
     const labelColor =
@@ -33,17 +36,38 @@ export class Projector {
     const labelStroke =
       rootStyle.getPropertyValue("--bar-label-stroke").trim() ||
       "rgba(20, 18, 14, 0.65)";
-    if (this.film.length === 0) {
+    if (this.timeline.length === 0) {
       stepsNode.textContent = "0 / 0";
-      if (indicesElement) indicesElement.textContent = "i=-, j=-, temp=-";
+      if (indicesElement) indicesElement.textContent = "実行待ち";
       select("#log").select("svg").remove();
       return;
     }
 
-    const { array, compares, i, j, temp, greens = [] } = this.film.picture;
-    stepsNode.textContent = `${compares} / ${this.film.totalCompares}`;
+    const {
+      array,
+      compares,
+      reads,
+      writes,
+      sorted,
+      line,
+      functionName,
+      comparison,
+      operators,
+      notes,
+    } = this.timeline.picture;
+    stepsNode.textContent = `${compares} / ${this.timeline.totalCompares}`;
     if (indicesElement) {
-      indicesElement.textContent = `i=${i}, j=${j}, temp=${temp}`;
+      const readLabel = reads.length ? reads.join(",") : "-";
+      const writeLabel = writes.length ? writes.join(",") : "-";
+      const operatorLabel =
+        comparison && operators.length ? ` · ${operators.join(" ")}` : "";
+      const notesLabel = Object.entries(notes)
+        .map(([name, value]) => `${name}=${value}`)
+        .join(", ");
+      indicesElement.textContent =
+        line > 0
+          ? `${functionName}:${line} · read[${readLabel}] · write[${writeLabel}]${operatorLabel}${notesLabel ? ` · ${notesLabel}` : ""}`
+          : "初期状態";
     }
     if (array.length === 0) {
       select("#log").select("svg").remove();
@@ -56,60 +80,63 @@ export class Projector {
     const paddingY =
       Number.parseFloat(logStyle.paddingTop) +
       Number.parseFloat(logStyle.paddingBottom);
-    const W = Math.max(240, logElement.clientWidth - paddingX);
-    const H = Math.max(160, logElement.clientHeight - paddingY);
-    const arrayPlus = [...array, temp];
-    const barCount = arrayPlus.length;
-    let barGap = 1;
-    if (W / barCount <= barGap) {
-      barGap = 0;
-    }
-    const BAR_W = W / barCount - barGap;
+    const width = Math.max(240, logElement.clientWidth - paddingX);
+    const height = Math.max(160, logElement.clientHeight - paddingY);
+    const barCount = array.length;
+    const barGap = width / barCount <= 1 ? 0 : 1;
+    const barWidth = width / barCount - barGap;
     const normalizeValue = (value: number): number =>
       Number.isFinite(value) ? Math.max(0, value) : 0;
-    const maxValue = arrayPlus.reduce(
+    const maxValue = array.reduce(
       (max, value) => Math.max(max, normalizeValue(value)),
       1,
     );
-    const BAR_H = H / maxValue;
+    const barHeight = height / maxValue;
 
     const logSelection = select(logElement);
     logSelection.select("svg").remove();
-    const svg = logSelection.append("svg").attr("width", W).attr("height", H);
+    const svg = logSelection
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("role", "img")
+      .attr(
+        "aria-label",
+        `ソート配列。比較 ${compares} 回、${this.timeline.position} ステップ目`,
+      );
+    svg.append("title").text(`配列: ${array.join(", ")}`);
     svg
       .selectAll("rect")
-      .data(arrayPlus)
+      .data(array)
       .enter()
       .append("rect")
-      .attr("x", (_, n: number) => n * (BAR_W + barGap))
-      .attr("y", (d: number) => H - normalizeValue(d) * BAR_H)
-      .attr("width", BAR_W)
-      .attr("height", (d: number) => normalizeValue(d) * BAR_H)
-      .attr("fill", (_, n) => {
-        if (n === arrayPlus.length - 1) {
-          return colors.temp;
-        } else if (n == j) {
-          return colors.compare;
-        } else if (n == i) {
-          return colors.focus;
-        } else if (greens.includes(n)) {
-          return colors.sorted;
-        } else {
-          return colors.base;
-        }
+      .attr("x", (_, index: number) => index * (barWidth + barGap))
+      .attr("y", (value: number) => height - normalizeValue(value) * barHeight)
+      .attr("width", barWidth)
+      .attr("height", (value: number) => normalizeValue(value) * barHeight)
+      .attr("fill", (_, index) => {
+        if (writes.includes(index)) return colors.write;
+        if (comparison && reads.includes(index)) return colors.compare;
+        if (reads.includes(index)) return colors.read;
+        if (sorted.includes(index)) return colors.sorted;
+        return colors.base;
       });
 
-    if (arrayPlus.length < 30) {
+    if (array.length < 30) {
       svg
         .selectAll("text")
-        .data(arrayPlus)
+        .data(array)
         .enter()
         .append("text")
-        .text((d: number) => d)
+        .text((value: number) => value)
         .attr("text-anchor", "middle")
-        .attr("x", (_, n) => n * (BAR_W + barGap) + BAR_W / 2)
-        .attr("y", (d: number) => H - normalizeValue(d) * BAR_H + BAR_W / 1.5)
-        .attr("font-size", () => `${Math.max(10, BAR_W / 2).toFixed(1)}px`)
+        .attr("x", (_, index) => index * (barWidth + barGap) + barWidth / 2)
+        .attr(
+          "y",
+          (value: number) =>
+            height - normalizeValue(value) * barHeight + barWidth / 1.5,
+        )
+        .attr("font-size", () => `${Math.max(10, barWidth / 2).toFixed(1)}px`)
         .attr("fill", labelColor)
         .attr("stroke", labelStroke)
         .attr("stroke-width", "1.8")
@@ -120,34 +147,51 @@ export class Projector {
   }
 
   async autoPlay(speedInputElement: HTMLInputElement): Promise<void> {
-    if (this.film === null || this.playing || this.film.length === 0) return;
-    this.playing = true;
-    const currentFilm = this.film;
-    while (this.playing && this.film === currentFilm) {
-      this.show();
-      if (currentFilm.isEnd) break;
-      const speed = Number.parseInt(speedInputElement.value, 10);
-      const normalizedSpeed = Number.isFinite(speed) && speed > 0 ? speed : 1;
-      await sleep(2000 / Math.sqrt(normalizedSpeed));
-      if (!this.playing || this.film !== currentFilm) break;
-      currentFilm.forward();
+    if (this.timeline === null || this.playing || this.timeline.length === 0) {
+      return;
     }
-    this.playing = false;
+    const generation = ++this.playGeneration;
+    this.playing = true;
+    const currentTimeline = this.timeline;
+    while (
+      this.playing &&
+      this.timeline === currentTimeline &&
+      generation === this.playGeneration
+    ) {
+      this.show();
+      if (currentTimeline.isEnd) break;
+      const speed = Number.parseInt(speedInputElement.value, 10);
+      const framesPerSecond =
+        Number.isFinite(speed) && speed > 0
+          ? Math.min(120, Math.max(1, speed))
+          : 10;
+      await sleep(1000 / framesPerSecond);
+      if (
+        !this.playing ||
+        this.timeline !== currentTimeline ||
+        generation !== this.playGeneration
+      ) {
+        break;
+      }
+      currentTimeline.forward();
+    }
+    if (generation === this.playGeneration) this.playing = false;
   }
 
   stopPlay(): void {
     this.playing = false;
+    this.playGeneration++;
   }
 
   back(): void {
-    if (this.film === null || this.film.isStart) return;
-    this.film.back();
+    if (this.timeline === null || this.timeline.isStart) return;
+    this.timeline.back();
     this.show();
   }
 
   forward(): void {
-    if (this.film === null || this.film.isEnd) return;
-    this.film.forward();
+    if (this.timeline === null || this.timeline.isEnd) return;
+    this.timeline.forward();
     this.show();
   }
 }

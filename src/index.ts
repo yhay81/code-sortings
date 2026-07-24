@@ -1,26 +1,34 @@
-import { createArray } from "./utils/initialArray";
-import { Projector } from "./utils/projector";
-import { Film } from "./utils/film";
-import "./style.css";
 import { CodeJar } from "codejar";
 import hljs from "highlight.js/lib/core";
-import javascript from "highlight.js/lib/languages/javascript";
+import python from "highlight.js/lib/languages/python";
+import { createArray } from "./utils/initialArray";
+import { Projector } from "./utils/projector";
+import { PythonRunner } from "./utils/pythonRunner";
+import { TraceTimeline } from "./utils/traceTimeline";
+import "./style.css";
 
-hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("python", python);
 
 window.addEventListener("load", () => {
   const projector = new Projector();
-  let sort: (array: number[], film: Film) => void = () => {
-    throw new Error("sort 関数が未定義です");
-  }; // sortは事前に一度行う（撮影）
+  const runner = new PythonRunner();
+  let executionGeneration = 0;
+  let busy = true;
 
   const countInput = document.querySelector<HTMLInputElement>("#length")!;
   const speedInputElement = document.querySelector<HTMLInputElement>("#speed")!;
-  const errorLogElement = document.querySelector<HTMLDivElement>("#error-log")!;
-
+  const statusElement = document.querySelector<HTMLDivElement>("#error-log")!;
   const editorElement = document.querySelector<HTMLDivElement>("#editor-code")!;
   const lineNumberElement =
     document.querySelector<HTMLDivElement>("#editor-lines")!;
+  const generateButton =
+    document.querySelector<HTMLButtonElement>("#generate-button")!;
+  const exampleSelect =
+    document.querySelector<HTMLSelectElement>("#example-select")!;
+  const exampleLoadButton = document.querySelector<HTMLButtonElement>(
+    "#example-load-button",
+  )!;
+
   const updateLineNumbers = (code: string): void => {
     const lines = code.split("\n").length;
     lineNumberElement.textContent = new Array(lines)
@@ -31,61 +39,59 @@ window.addEventListener("load", () => {
   const highlight = (editor: HTMLElement): void => {
     const code = editor.textContent ?? "";
     editor.innerHTML = code.length
-      ? hljs.highlight(code, { language: "javascript" }).value
+      ? hljs.highlight(code, { language: "python" }).value
       : "";
     updateLineNumbers(code);
   };
-  const setErrorLog = (message?: string): void => {
-    if (!message) {
-      errorLogElement.textContent = "エラー: なし";
-      errorLogElement.dataset.state = "ok";
-      return;
-    }
-    errorLogElement.textContent = `エラー: ${message}`;
-    errorLogElement.dataset.state = "error";
+  const setStatus = (
+    message: string,
+    state: "ok" | "error" | "working" = "ok",
+  ): void => {
+    statusElement.textContent = message;
+    statusElement.dataset.state = state;
   };
-  const compileSort = (
-    code: string,
-  ): ((array: number[], film: Film) => void) => {
-    const factory = new Function(
-      `"use strict"; let sort; ${code}; return sort;`,
-    );
-    const compiled = factory();
-    if (typeof compiled !== "function") {
-      throw new Error("sort 関数が未定義です");
-    }
-    return compiled as (array: number[], film: Film) => void;
+  const updateExampleButtonState = (): void => {
+    exampleLoadButton.disabled = busy || exampleSelect.value === "";
   };
-  const jar = CodeJar(editorElement, highlight, { tab: "  " });
+  const setBusy = (nextBusy: boolean): void => {
+    busy = nextBusy;
+    generateButton.disabled = busy;
+    countInput.disabled = busy;
+    updateExampleButtonState();
+  };
+  const clearVisualization = (): void => {
+    projector.stopPlay();
+    projector.timeline = null;
+    document.querySelector("#log svg")?.remove();
+    document.querySelector("#steps")!.textContent = "0 / 0";
+    document.querySelector("#indices")!.textContent = "実行待ち";
+  };
+
+  editorElement.setAttribute("role", "textbox");
+  editorElement.setAttribute("aria-multiline", "true");
+  editorElement.setAttribute("aria-label", "Python sorting editor");
+  editorElement.setAttribute("spellcheck", "false");
+  const jar = CodeJar(editorElement, highlight, { tab: "    " });
   editorElement.addEventListener("scroll", () => {
     lineNumberElement.scrollTop = editorElement.scrollTop;
   });
-  jar.updateCode(`sort = (array, film) => {
-  let compares = 0
-  for (let i = 0; i < array.length; i++) {
-    const temp = array[i]
-    let j
-    for (j = i; j >= 1; j -= 1) {
-      film.rec({ array, i, j, temp, compares })
-      compares++
-      if (array[j - 1] > temp) {
-        array[j] = array[j - 1]
-        film.rec({ array, i, j, temp, compares })
-      } else {
-        break;
-      }
-    }
-    array[j] = temp
-    film.rec({ array, i, j, temp, compares })
-  }
-}
-  `);
+  jar.updateCode(`def sort(array):
+    for i in range(1, len(array)):
+        temp = array[i]
+        j = i
+        while j >= 1 and array[j - 1] > temp:
+            array[j] = array[j - 1]
+            j -= 1
+        array[j] = temp
+`);
   updateLineNumbers(jar.toString());
 
-  const reset = (): void => {
-    sort = () => {
-      throw new Error("sort 関数が未定義です");
-    };
+  const executeSort = async (): Promise<void> => {
+    const generation = ++executionGeneration;
+    projector.stopPlay();
+    setBusy(true);
+    setStatus("Pythonコードを実行しています…", "working");
+
     const pattern = document.querySelector<HTMLInputElement>(
       'input[name="array-pattern"]:checked',
     )!.value;
@@ -93,38 +99,48 @@ window.addEventListener("load", () => {
     const normalizedCount = Number.isNaN(parsedCount) ? 20 : parsedCount;
     const count = Math.min(300, Math.max(3, normalizedCount));
     countInput.value = count.toString();
-    const film = new Film();
     const array = createArray(count, pattern);
+
     try {
-      sort = compileSort(jar.toString());
-      sort(array, film);
-      setErrorLog();
+      const result = await runner.run(jar.toString(), array);
+      if (generation !== executionGeneration) return;
+      if (!result.ok) {
+        clearVisualization();
+        setStatus(`${result.errorType}: ${result.message}`, "error");
+        if (result.traceback) console.error(result.traceback);
+        return;
+      }
+
+      projector.timeline = new TraceTimeline(result);
+      projector.show();
+      if (!result.preservesValues) {
+        setStatus(
+          "実行は完了しましたが、元の配列と値の構成が変わっています",
+          "error",
+        );
+      } else if (!result.isSorted) {
+        setStatus(
+          `実行は完了しましたが、配列は昇順になっていません（Python ${runner.pythonVersion}）`,
+          "error",
+        );
+      } else {
+        const samplingLabel = result.sampled
+          ? ` · ${result.rawSteps.toLocaleString()}操作から間引き`
+          : "";
+        setStatus(
+          `実行完了 · ${result.events.length.toLocaleString()}フレーム${samplingLabel} · Python ${runner.pythonVersion}`,
+        );
+      }
     } catch (error) {
+      if (generation !== executionGeneration) return;
+      clearVisualization();
       const message = error instanceof Error ? error.message : String(error);
-      window.alert(
-        "コードの実行に失敗しました。エラー内容は下のログとコンソールを確認してください。",
-      );
-      setErrorLog(message);
-      console.error(error);
-      projector.stopPlay();
-      projector.film = null;
-      const stepsElement = document.querySelector("#steps");
-      if (stepsElement) stepsElement.textContent = "0 / 0";
-      document.querySelector("#log svg")?.remove();
-      return;
+      setStatus(message, "error");
+    } finally {
+      if (generation === executionGeneration) setBusy(false);
     }
-    projector.film = film;
-    projector.show();
   };
 
-  const exampleSelect =
-    document.querySelector<HTMLSelectElement>("#example-select")!;
-  const exampleLoadButton = document.querySelector<HTMLButtonElement>(
-    "#example-load-button",
-  )!;
-  const updateExampleButtonState = (): void => {
-    exampleLoadButton.disabled = exampleSelect.value === "";
-  };
   const loadExample = async (): Promise<void> => {
     if (!exampleSelect.value) return;
     try {
@@ -132,19 +148,18 @@ window.addEventListener("load", () => {
       if (!response.ok) {
         throw new Error("例コードの読み込みに失敗しました");
       }
-      const code = await response.text();
-      jar.updateCode(code);
+      jar.updateCode(await response.text());
       updateLineNumbers(jar.toString());
       editorElement.scrollTop = 0;
       lineNumberElement.scrollTop = 0;
-      projector.stopPlay();
-      reset();
+      await executeSort();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      setErrorLog(message);
+      setStatus(message, "error");
       console.error(error);
     }
   };
+
   exampleSelect.addEventListener("change", updateExampleButtonState);
   exampleLoadButton.addEventListener("click", () => {
     void loadExample();
@@ -161,57 +176,54 @@ window.addEventListener("load", () => {
     ) {
       return;
     }
-    const [SPACE, LEFT, RIGHT] = [" ", "ArrowLeft", "ArrowRight"];
-    if (event.key === SPACE || event.key === LEFT || event.key === RIGHT) {
+    const [space, left, right] = [" ", "ArrowLeft", "ArrowRight"];
+    if (event.key === space || event.key === left || event.key === right) {
       event.preventDefault();
     }
     switch (event.key) {
-      case SPACE:
+      case space:
         if (projector.playing) projector.stopPlay();
         else void projector.autoPlay(speedInputElement);
         break;
-      case LEFT:
+      case left:
         projector.back();
         break;
-      case RIGHT:
+      case right:
         projector.forward();
         break;
     }
   });
 
-  const startButton = document.querySelector("#start-button")!;
-  startButton.addEventListener("click", () => {
+  document.querySelector("#start-button")!.addEventListener("click", () => {
     void projector.autoPlay(speedInputElement);
   });
-
-  const stopButton = document.querySelector("#stop-button")!;
-  stopButton.addEventListener("click", () => {
+  document.querySelector("#stop-button")!.addEventListener("click", () => {
     projector.stopPlay();
   });
-
-  const backButton = document.querySelector("#back-button")!;
-  backButton.addEventListener("click", () => {
+  document.querySelector("#back-button")!.addEventListener("click", () => {
     projector.back();
   });
-
-  const forwardButton = document.querySelector("#forward-button")!;
-  forwardButton.addEventListener("click", () => {
+  document.querySelector("#forward-button")!.addEventListener("click", () => {
     projector.forward();
   });
-
-  const resetButton = document.querySelector("#reset-button")!;
-  resetButton.addEventListener("click", () => {
+  document.querySelector("#reset-button")!.addEventListener("click", () => {
     projector.stopPlay();
-    if (projector.film) projector.film.reset();
+    projector.timeline?.reset();
     projector.show();
   });
-
-  const generateButton = document.querySelector("#generate-button")!;
   generateButton.addEventListener("click", () => {
-    projector.stopPlay();
-    reset();
+    void executeSort();
   });
 
-  setErrorLog();
-  reset();
+  window.addEventListener("beforeunload", () => runner.dispose());
+
+  setStatus("Pythonエンジンを準備しています…", "working");
+  void runner
+    .warm()
+    .then(() => executeSort())
+    .catch((error: unknown) => {
+      setBusy(false);
+      const message = error instanceof Error ? error.message : String(error);
+      setStatus(message, "error");
+    });
 });

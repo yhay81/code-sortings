@@ -24,25 +24,25 @@
       <div id="editor">
         <div class="panel-header">
           <div class="panel-title">Editor</div>
-          <div class="panel-meta">JavaScript</div>
+          <div class="panel-meta">Python</div>
         </div>
         <div class="editor-toolbar">
           <div class="section-title">Examples</div>
           <div class="examples-row">
             <select id="example-select" aria-label="examples">
               <option value="">Select Example</option>
-              <option value="sort_examples/insertionSort.js">
+              <option value="sort_examples/insertion_sort.py">
                 Insertion Sort
               </option>
-              <option value="sort_examples/shellSort.js">Shell Sort</option>
-              <option value="sort_examples/bubbleSort.js">Bubble Sort</option>
-              <option value="sort_examples/selectionSort.js">
+              <option value="sort_examples/shell_sort.py">Shell Sort</option>
+              <option value="sort_examples/bubble_sort.py">Bubble Sort</option>
+              <option value="sort_examples/selection_sort.py">
                 Selection Sort
               </option>
-              <option value="sort_examples/quickSort.js">Quick Sort</option>
-              <option value="sort_examples/mergeSort.js">Merge Sort</option>
-              <option value="sort_examples/heapSort.js">Heap Sort</option>
-              <option value="sort_examples/cocktailSort.js">
+              <option value="sort_examples/quick_sort.py">Quick Sort</option>
+              <option value="sort_examples/merge_sort.py">Merge Sort</option>
+              <option value="sort_examples/heap_sort.py">Heap Sort</option>
+              <option value="sort_examples/cocktail_sort.py">
                 Cocktail Sort
               </option>
             </select>
@@ -61,7 +61,13 @@
         </div>
         <div class="editor-body">
           <div id="editor-lines" aria-hidden="true"></div>
-          <div id="editor-code" aria-label="editor"></div>
+          <div
+            id="editor-code"
+            role="textbox"
+            aria-label="Python sorting editor"
+            aria-multiline="true"
+            spellcheck="false"
+          ></div>
         </div>
       </div>
 
@@ -150,15 +156,15 @@
             <span class="view-label">Comparisons</span>
             <div class="view-metrics">
               <span class="view-chip" id="steps">0 / 0</span>
-              <span class="view-chip view-chip--meta" id="indices">
-                i=0, j=0, temp=0
-              </span>
+              <span class="view-chip view-chip--meta" id="indices"
+                >実行待ち</span
+              >
             </div>
           </div>
           <div id="log"></div>
         </div>
         <div id="error-log" class="error-log" role="status" aria-live="polite">
-          エラー: なし
+          Pythonエンジンを準備しています…
         </div>
 
         <div class="control">
@@ -166,7 +172,7 @@
           <div class="control-row">
             <div class="number-input">
               <label for="speed">Speed: </label>
-              <input id="speed" type="number" value="10" min="1" max="9999" />
+              <input id="speed" type="number" value="10" min="1" max="120" />
             </div>
             <button class="primary-btn" id="start-button" aria-label="start">
               <svg
@@ -258,34 +264,31 @@
       <div class="description">
         <div class="usage">USAGE</div>
         <div>
-          例を参考に各手順で「film.rec()関数」にデータを与えてください。<br />
-          iは緑色のindex, jは赤色のindex, tempは右端に保存されるデータ,
-          comparesは現在の比較回数, greensは強調したいindexです。
+          通常のPythonとして <code>def sort(array):</code>
+          を定義してください。配列の読み取り・比較・代入・交換は自動的に記録されます。
         </div>
         <div class="usage-note">
           最小テンプレ:
-          <code
-            >sort = (array, film) => { const temp = array[0]; film.rec({ array,
-            i: 0, j: 0, temp, compares: 0 }); }</code
-          >
-          / ショートカット: Space=再生/停止、←=戻る、→=進む
+          <code>def sort(array): array[0], array[1] = array[1], array[0]</code>
+          / 任意API: array.swap(i, j), array.mark_sorted(i), array.note(name,
+          value) / ショートカット: Space=再生/停止、←=戻る、→=進む
         </div>
         <div class="legend" aria-label="bar-legend">
           <div class="legend-item">
             <span class="legend-swatch legend-swatch--i"></span>
-            i（緑）
+            読み取り
           </div>
           <div class="legend-item">
             <span class="legend-swatch legend-swatch--j"></span>
-            j（赤）
+            比較
           </div>
           <div class="legend-item">
             <span class="legend-swatch legend-swatch--temp"></span>
-            temp（右端）
+            書き込み
           </div>
           <div class="legend-item">
             <span class="legend-swatch legend-swatch--greens"></span>
-            greens（強調）
+            確定済み
           </div>
           <div class="legend-item">
             <span class="legend-swatch legend-swatch--default"></span>

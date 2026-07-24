@@ -1,7 +1,7 @@
 {
   "name": "code-sorting",
   "version": "1.1.0",
-  "description": "Code sorting algorithms!",
+  "description": "Visualize Python sorting algorithms in the browser",
   "repository": {
     "type": "git"
   },
@@ -9,11 +9,16 @@
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
   "main": "dev-server.js",
   "scripts": {
-    "build": "rm -rf ./dist && mkdir -p ./dist && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico",
-    "dev": "rm -rf ./dist && mkdir -p ./dist && cp ./src/index.html ./dist/index.html && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
+    "build": "rm -rf ./dist && mkdir -p ./dist && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp -R ./src/python ./dist/python && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico",
+    "dev": "rm -rf ./dist && mkdir -p ./dist && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp -R ./src/python ./dist/python && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
     "fix": "rm -rf node_modules bun.lockb package-lock.json yarn.lock && bun run update && bunx sort-package-json && bun install && bun run fmt && bun run lint",
+    "check": "bun run typecheck && bun run lint:check && bun run fmt:check && bun run test",
     "fmt": "prettier --write src",
+    "fmt:check": "prettier --check src tests/traceTimeline.test.ts",
     "lint": "eslint --fix --ext .ts src",
+    "lint:check": "eslint --ext .ts src tests",
+    "test": "bun test && python3 -m unittest discover -s tests -p 'test_*.py'",
+    "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "start": "nodemon dev-server.js",
     "update": "bunx npm-check-updates -u"
@@ -24,6 +29,7 @@
     "highlight.js": "^11.11.1"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.14",
     "@types/d3": "^7.4.3",
     "@typescript-eslint/eslint-plugin": "^8.51.0",
     "@typescript-eslint/parser": "^8.51.0",
