@@ -239,7 +239,7 @@ export class Projector {
       .attr("y", (value: number) => height - normalizeValue(value) * barHeight)
       .attr("width", barWidth)
       .attr("height", (value: number) => normalizeValue(value) * barHeight)
-      .attr("rx", Math.min(2, barWidth / 3))
+      .attr("rx", Math.min(4, barWidth / 3))
       .attr("fill", (_, index) => {
         if (writes.includes(index)) return colors.write;
         if (comparison && reads.includes(index)) return colors.compare;

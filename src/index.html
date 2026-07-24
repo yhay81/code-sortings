@@ -21,7 +21,7 @@
       <div class="window-title">
         <span>main.py</span>
         <span aria-hidden="true">—</span>
-        <span>sorting workspace</span>
+        <span>sorting lab</span>
       </div>
       <div
         class="engine-status"
@@ -39,7 +39,7 @@
       <section class="command-bar" aria-label="実行設定">
         <div class="command-group">
           <label class="command-field" for="example-select">
-            <span>Example</span>
+            <span>サンプル</span>
             <select id="example-select">
               <option value="sort_examples/insertion_sort.py" selected>
                 Insertion Sort
@@ -67,7 +67,7 @@
           </button>
           <span class="command-divider" aria-hidden="true"></span>
           <label class="command-field" for="pattern-select">
-            <span>Input</span>
+            <span>入力パターン</span>
             <select id="pattern-select">
               <option value="random" selected>ランダム</option>
               <option value="nearly-sorted">ほぼ整列済み</option>
@@ -76,7 +76,7 @@
             </select>
           </label>
           <label class="command-field command-field--number" for="length">
-            <span>Size</span>
+            <span>要素数</span>
             <input id="length" type="number" value="20" min="3" max="300" />
           </label>
         </div>
@@ -150,7 +150,7 @@
 
           <div class="playback">
             <div class="timeline-row">
-              <label for="timeline-range">Timeline</label>
+              <label for="timeline-range">タイムライン</label>
               <input
                 id="timeline-range"
                 type="range"
@@ -211,7 +211,7 @@
 
       <aside class="inspector" aria-labelledby="lesson-title">
         <section class="inspector-section inspector-section--algorithm">
-          <span class="inspector-label">ALGORITHM</span>
+          <span class="inspector-label">アルゴリズム</span>
           <h2 id="lesson-title">Insertion Sort</h2>
           <p id="lesson-summary">
             左側の整列済み部分へ、次の値を正しい位置まで差し込みます。
@@ -219,29 +219,29 @@
         </section>
 
         <section class="inspector-section complexity" aria-label="計算量">
-          <span class="inspector-label">COMPLEXITY</span>
+          <span class="inspector-label">計算量</span>
           <dl>
             <div>
-              <dt>Best</dt>
+              <dt>最良</dt>
               <dd id="complexity-best">O(n)</dd>
             </div>
             <div>
-              <dt>Average</dt>
+              <dt>平均</dt>
               <dd id="complexity-average">O(n²)</dd>
             </div>
             <div>
-              <dt>Worst</dt>
+              <dt>最悪</dt>
               <dd id="complexity-worst">O(n²)</dd>
             </div>
             <div>
-              <dt>Trait</dt>
+              <dt>特徴</dt>
               <dd id="lesson-trait">安定・in-place</dd>
             </div>
           </dl>
         </section>
 
         <section class="inspector-section">
-          <span class="inspector-label">OBSERVE</span>
+          <span class="inspector-label">見るポイント</span>
           <p id="lesson-focus">
             ほぼ整列済みの入力では、値をずらす回数が少なくなることに注目しましょう。
           </p>
@@ -251,23 +251,21 @@
         </section>
 
         <section class="inspector-section">
-          <span class="inspector-label">TRACE COLORS</span>
+          <span class="inspector-label">色の意味</span>
           <div class="legend" aria-label="棒グラフの色">
-            <span><i class="legend-read"></i>read</span>
-            <span><i class="legend-compare"></i>compare</span>
-            <span><i class="legend-write"></i>write</span>
-            <span><i class="legend-sorted"></i>sorted</span>
-            <span><i class="legend-default"></i>idle</span>
+            <span><i class="legend-read"></i>読む</span>
+            <span><i class="legend-compare"></i>比べる</span>
+            <span><i class="legend-write"></i>書く</span>
+            <span><i class="legend-sorted"></i>整列済み</span>
+            <span><i class="legend-default"></i>待機</span>
           </div>
         </section>
       </aside>
 
       <footer class="statusbar">
         <div>
-          <span class="statusbar-item"
-            >追跡対象: list access / compare / write</span
-          >
-          <span class="statusbar-item">配列: 3–300</span>
+          <span class="statusbar-item">追跡: 読む / 比べる / 書く</span>
+          <span class="statusbar-item">配列: 3–300個</span>
         </div>
         <div>
           <span class="shortcut"><kbd>⌘↵</kbd> 実行</span>
