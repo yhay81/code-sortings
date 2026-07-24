@@ -59,7 +59,22 @@ bun run check
 bun run build
 ```
 
-`main`ブランチへのpushで、GitHub ActionsからGitHub Pagesへ自動デプロイされます。
+## Deployment
+
+本番サイトはCloudflare Workers Static Assetsから配信します。
+
+- Worker: `code-sortings`
+- Custom Domain: https://sort.yusuke-hayashi.com
+- Preview: https://code-sortings.yusuke8h.workers.dev
+
+Cloudflareへログインした環境から、品質チェック・ビルド・デプロイをまとめて実行できます。
+
+```sh
+bunx wrangler login
+bun run deploy
+```
+
+`wrangler.jsonc` が `dist` の静的ファイルとCustom Domainを管理します。`main`ブランチへのpushでは、GitHub Actionsが品質チェック・本番ビルド・Cloudflare設定のdry runを行います。
 
 ## Licence
 

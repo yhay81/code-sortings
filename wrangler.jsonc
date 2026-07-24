@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "code-sortings",
+  "compatibility_date": "2026-07-24",
+  "assets": {
+    "directory": "./dist"
+  },
+  "routes": [
+    {
+      "pattern": "sort.yusuke-hayashi.com",
+      "custom_domain": true
+    }
+  ],
+  "workers_dev": true,
+  "preview_urls": true
+}

@@ -9,8 +9,10 @@
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
   "main": "dev-server.js",
   "scripts": {
-    "build": "rm -rf ./dist && mkdir -p ./dist && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp -R ./src/python ./dist/python && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico",
-    "dev": "rm -rf ./dist && mkdir -p ./dist && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp -R ./src/python ./dist/python && cp -R ./sort_examples ./dist/sort_examples && cp ./public/CNAME ./dist/CNAME && cp ./public/favicon.ico ./dist/favicon.ico && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
+    "build": "rm -rf ./dist && mkdir -p ./dist/python && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp ./src/python/runner.py ./dist/python/runner.py && cp -R ./sort_examples ./dist/sort_examples && cp ./public/favicon.ico ./dist/favicon.ico",
+    "dev": "rm -rf ./dist && mkdir -p ./dist/python && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp ./src/python/runner.py ./dist/python/runner.py && cp -R ./sort_examples ./dist/sort_examples && cp ./public/favicon.ico ./dist/favicon.ico && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
+    "deploy": "bun run check && bun run build && wrangler deploy",
+    "deploy:dry-run": "bun run build && wrangler deploy --dry-run",
     "fix": "rm -rf node_modules bun.lockb package-lock.json yarn.lock && bun run update && bunx sort-package-json && bun install && bun run fmt && bun run lint",
     "check": "bun run typecheck && bun run lint:check && bun run fmt:check && bun run test",
     "fmt": "prettier --write src",
@@ -43,6 +45,7 @@
     "nodemon": "^3.1.11",
     "prettier": "^3.7.4",
     "serve-favicon": "^2.5.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "4.114.0"
   }
 }
