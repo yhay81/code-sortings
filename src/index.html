@@ -13,14 +13,16 @@
     <link rel="stylesheet" href="index.css" />
   </head>
   <body>
-    <header class="site-header">
+    <header class="titlebar">
       <a class="brand" href="/" aria-label="Code Sortings ホーム">
         <span class="brand-mark" aria-hidden="true">CS</span>
-        <span>
-          <strong>CODE SORTINGS</strong>
-          <small>Python sorting lab</small>
-        </span>
+        <strong>CODE SORTINGS</strong>
       </a>
+      <div class="window-title">
+        <span>main.py</span>
+        <span aria-hidden="true">—</span>
+        <span>sorting workspace</span>
+      </div>
       <div
         class="engine-status"
         id="engine-status"
@@ -33,90 +35,73 @@
       </div>
     </header>
 
-    <main>
-      <section class="intro" aria-labelledby="page-title">
-        <div class="intro-copy">
-          <p class="eyebrow">INTERACTIVE SORTING LAB</p>
-          <h1 id="page-title">コードの一行が、<br />配列をどう動かすか。</h1>
-          <p>
-            <code>def sort(array):</code>
-            を普通のPythonで書くだけ。比較・読み取り・書き換えを自動で見つけ、一コマずつ説明します。
-          </p>
+    <main class="app-shell">
+      <section class="command-bar" aria-label="実行設定">
+        <div class="command-group">
+          <label class="command-field" for="example-select">
+            <span>Example</span>
+            <select id="example-select">
+              <option value="sort_examples/insertion_sort.py" selected>
+                Insertion Sort
+              </option>
+              <option value="sort_examples/shell_sort.py">Shell Sort</option>
+              <option value="sort_examples/bubble_sort.py">Bubble Sort</option>
+              <option value="sort_examples/selection_sort.py">
+                Selection Sort
+              </option>
+              <option value="sort_examples/quick_sort.py">Quick Sort</option>
+              <option value="sort_examples/merge_sort.py">Merge Sort</option>
+              <option value="sort_examples/heap_sort.py">Heap Sort</option>
+              <option value="sort_examples/cocktail_sort.py">
+                Cocktail Sort
+              </option>
+            </select>
+          </label>
+          <button
+            class="tool-button"
+            id="example-load-button"
+            type="button"
+            title="選択した例でmain.pyを置き換える"
+          >
+            開く
+          </button>
+          <span class="command-divider" aria-hidden="true"></span>
+          <label class="command-field" for="pattern-select">
+            <span>Input</span>
+            <select id="pattern-select">
+              <option value="random" selected>ランダム</option>
+              <option value="nearly-sorted">ほぼ整列済み</option>
+              <option value="reversed">逆順</option>
+              <option value="few-unique">重複が多い</option>
+            </select>
+          </label>
+          <label class="command-field command-field--number" for="length">
+            <span>Size</span>
+            <input id="length" type="number" value="20" min="3" max="300" />
+          </label>
         </div>
-        <ol class="learning-path" aria-label="使い方">
-          <li>
-            <span>1</span>
-            <div>
-              <strong>コードを書く</strong><small>例から始めてもOK</small>
-            </div>
-          </li>
-          <li>
-            <span>2</span>
-            <div>
-              <strong>入力を選ぶ</strong><small>並び方と長さを設定</small>
-            </div>
-          </li>
-          <li>
-            <span>3</span>
-            <div>
-              <strong>動きを読む</strong><small>再生・停止・巻き戻し</small>
-            </div>
-          </li>
-        </ol>
+        <button class="run-button" id="generate-button" type="button">
+          <span aria-hidden="true">▶</span>
+          実行
+          <kbd>⌘↵</kbd>
+        </button>
       </section>
 
-      <div class="workspace">
+      <div class="workbench">
         <section
           id="editor"
-          class="workspace-panel"
+          class="pane editor-pane"
           aria-labelledby="editor-title"
         >
-          <div class="panel-header">
-            <div class="panel-heading">
-              <span class="step-number">01</span>
-              <div>
-                <p class="panel-kicker">WRITE</p>
-                <h2 id="editor-title">Pythonコード</h2>
-              </div>
+          <div class="pane-tabs">
+            <div class="file-tab file-tab--active">
+              <span class="language-icon" aria-hidden="true">PY</span>
+              <h1 id="editor-title">main.py</h1>
             </div>
-            <span class="panel-meta">自動追跡</span>
+            <span class="pane-meta">Python</span>
           </div>
-
-          <div class="editor-toolbar">
-            <label for="example-select">アルゴリズム例</label>
-            <div class="examples-row">
-              <select id="example-select">
-                <option value="sort_examples/insertion_sort.py" selected>
-                  Insertion Sort
-                </option>
-                <option value="sort_examples/shell_sort.py">Shell Sort</option>
-                <option value="sort_examples/bubble_sort.py">
-                  Bubble Sort
-                </option>
-                <option value="sort_examples/selection_sort.py">
-                  Selection Sort
-                </option>
-                <option value="sort_examples/quick_sort.py">Quick Sort</option>
-                <option value="sort_examples/merge_sort.py">Merge Sort</option>
-                <option value="sort_examples/heap_sort.py">Heap Sort</option>
-                <option value="sort_examples/cocktail_sort.py">
-                  Cocktail Sort
-                </option>
-              </select>
-              <button
-                class="secondary-button secondary-button--dark"
-                id="example-load-button"
-                type="button"
-              >
-                例を開く
-              </button>
-            </div>
-            <p class="field-help">
-              「例を開く」と現在のコードが置き換わり、そのまま実行されます。
-            </p>
-          </div>
-
           <div class="editor-body">
+            <div id="editor-active-line" aria-hidden="true"></div>
             <div id="editor-lines" aria-hidden="true"></div>
             <div
               id="editor-code"
@@ -126,107 +111,89 @@
               spellcheck="false"
             ></div>
           </div>
-          <div class="editor-footer">
-            <span>必要なのは <code>sort(array)</code> だけ</span>
-            <span><kbd>Tab</kbd> で4文字インデント</span>
+          <div class="pane-footer">
+            <span><code>def sort(array)</code></span>
+            <span id="editor-source-position">実行待ち</span>
+            <span>Spaces: 4</span>
           </div>
         </section>
 
-        <section
-          class="result workspace-panel"
-          aria-labelledby="visualizer-title"
-        >
-          <div class="panel-header">
-            <div class="panel-heading">
-              <span class="step-number">02</span>
-              <div>
-                <p class="panel-kicker">OBSERVE</p>
-                <h2 id="visualizer-title">配列の動き</h2>
-              </div>
+        <section class="pane result" aria-labelledby="visualizer-title">
+          <div class="pane-tabs">
+            <div class="file-tab file-tab--active">
+              <span class="visualizer-icon" aria-hidden="true">▥</span>
+              <h2 id="visualizer-title">Visualizer</h2>
             </div>
-            <span class="panel-meta">一コマずつ再現</span>
-          </div>
-
-          <div class="run-builder">
-            <fieldset>
-              <legend>どんな入力で試しますか？</legend>
-              <div class="array-patterns">
-                <label class="array-pattern" for="random">
-                  <input
-                    id="random"
-                    type="radio"
-                    name="array-pattern"
-                    value="random"
-                    checked
-                  />
-                  <span>ランダム</span>
-                </label>
-                <label class="array-pattern" for="nearly-sorted">
-                  <input
-                    id="nearly-sorted"
-                    type="radio"
-                    name="array-pattern"
-                    value="nearly-sorted"
-                  />
-                  <span>ほぼ整列済み</span>
-                </label>
-                <label class="array-pattern" for="reversed">
-                  <input
-                    id="reversed"
-                    type="radio"
-                    name="array-pattern"
-                    value="reversed"
-                  />
-                  <span>逆順</span>
-                </label>
-                <label class="array-pattern" for="few-unique">
-                  <input
-                    id="few-unique"
-                    type="radio"
-                    name="array-pattern"
-                    value="few-unique"
-                  />
-                  <span>重複が多い</span>
-                </label>
-              </div>
-            </fieldset>
-            <p id="pattern-hint" class="pattern-hint">
-              平均的な動きを眺めるのに向いた、順序に偏りのない入力です。
-            </p>
-            <div class="run-row">
-              <label class="number-field" for="length">
-                <span>要素数</span>
-                <input id="length" type="number" value="20" min="3" max="300" />
-              </label>
-              <button class="primary-button" id="generate-button" type="button">
-                <span aria-hidden="true">▶</span>
-                コードを実行
-              </button>
+            <div class="view-metrics" aria-label="実行メトリクス">
+              <span><small>比較</small><strong id="steps">0</strong></span>
+              <span
+                ><small>フレーム</small
+                ><strong id="frame-position">0 / 0</strong></span
+              >
+              <span id="indices">実行待ち</span>
             </div>
           </div>
 
-          <div class="view">
-            <div class="view-head">
-              <span class="view-label">現在の配列</span>
-              <div class="view-metrics" aria-label="実行メトリクス">
-                <span class="metric">
-                  <small>比較</small>
-                  <strong id="steps">0</strong>
-                </span>
-                <span class="metric">
-                  <small>フレーム</small>
-                  <strong id="frame-position">0 / 0</strong>
-                </span>
-                <span class="source-position" id="indices">実行待ち</span>
-              </div>
-            </div>
+          <div class="visualizer-stage">
             <div id="log"></div>
-            <div class="operation-card" aria-atomic="true">
-              <p id="operation-kind">開始位置</p>
-              <h3 id="operation-explanation">実行前の配列です</h3>
-              <div id="operation-detail">
-                Pythonの準備ができると、自動で最初のコードを実行します。
+            <div class="operation-console" aria-atomic="true">
+              <div class="console-prompt" aria-hidden="true">›</div>
+              <div>
+                <p id="operation-kind">開始位置</p>
+                <h3 id="operation-explanation">実行前の配列です</h3>
+                <div id="operation-detail">
+                  Pythonの準備ができると、自動で最初のコードを実行します。
+                </div>
               </div>
+            </div>
+          </div>
+
+          <div class="playback">
+            <div class="timeline-row">
+              <label for="timeline-range">Timeline</label>
+              <input
+                id="timeline-range"
+                type="range"
+                min="0"
+                max="0"
+                value="0"
+                step="1"
+                disabled
+              />
+              <output id="timeline-position" for="timeline-range">0 / 0</output>
+            </div>
+            <div class="transport" aria-label="再生操作">
+              <button id="reset-button" type="button" title="先頭へ" disabled>
+                ↤
+                <span>先頭</span>
+              </button>
+              <button id="back-button" type="button" title="1コマ戻る" disabled>
+                ←
+                <span>戻る</span>
+              </button>
+              <button
+                class="transport-play"
+                id="start-button"
+                type="button"
+                title="再生"
+                disabled
+              >
+                <span aria-hidden="true" id="play-icon">▶</span>
+                <span id="play-label">再生</span>
+              </button>
+              <button
+                id="forward-button"
+                type="button"
+                title="1コマ進む"
+                disabled
+              >
+                →
+                <span>進む</span>
+              </button>
+              <label class="speed-field" for="speed">
+                <span>FPS</span>
+                <input id="speed" type="number" value="10" min="1" max="120" />
+              </label>
             </div>
           </div>
 
@@ -239,125 +206,75 @@
           >
             Pythonエンジンを準備しています…
           </div>
-
-          <div class="playback">
-            <div class="timeline-head">
-              <label for="timeline-range">動きを移動</label>
-              <output id="timeline-position" for="timeline-range"
-                >フレーム 0 / 0</output
-              >
-            </div>
-            <input
-              id="timeline-range"
-              type="range"
-              min="0"
-              max="0"
-              value="0"
-              step="1"
-              disabled
-            />
-            <div class="playback-row">
-              <div class="playback-main">
-                <button
-                  class="primary-button"
-                  id="start-button"
-                  type="button"
-                  disabled
-                >
-                  <span aria-hidden="true">▶</span>
-                  再生
-                </button>
-                <button
-                  class="secondary-button"
-                  id="stop-button"
-                  type="button"
-                  disabled
-                >
-                  一時停止
-                </button>
-              </div>
-              <label class="number-field number-field--compact" for="speed">
-                <span>速さ</span>
-                <input id="speed" type="number" value="10" min="1" max="120" />
-                <small>コマ/秒</small>
-              </label>
-            </div>
-            <div class="step-controls" aria-label="コマ送り">
-              <button id="reset-button" type="button" disabled>先頭へ</button>
-              <button id="back-button" type="button" disabled>
-                ← 1コマ戻る
-              </button>
-              <button id="forward-button" type="button" disabled>
-                1コマ進む →
-              </button>
-            </div>
-            <p class="shortcut-help">
-              キーボード: <kbd>Space</kbd> 再生/停止 · <kbd>←</kbd> 戻る ·
-              <kbd>→</kbd> 進む
-            </p>
-          </div>
         </section>
       </div>
 
-      <section class="learning-panel" aria-labelledby="lesson-title">
-        <article class="lesson-copy">
-          <p class="eyebrow">LEARNING NOTE</p>
+      <aside class="inspector" aria-labelledby="lesson-title">
+        <section class="inspector-section inspector-section--algorithm">
+          <span class="inspector-label">ALGORITHM</span>
           <h2 id="lesson-title">Insertion Sort</h2>
           <p id="lesson-summary">
             左側の整列済み部分へ、次の値を正しい位置まで差し込みます。
           </p>
-          <div class="focus-note">
-            <span>観察ポイント</span>
-            <p id="lesson-focus">
-              ほぼ整列済みの入力では、値をずらす回数が少なくなることに注目しましょう。
-            </p>
-          </div>
-        </article>
-        <div class="complexity" aria-label="計算量">
-          <p class="section-label">この実装の計算量</p>
+        </section>
+
+        <section class="inspector-section complexity" aria-label="計算量">
+          <span class="inspector-label">COMPLEXITY</span>
           <dl>
             <div>
-              <dt>最良</dt>
+              <dt>Best</dt>
               <dd id="complexity-best">O(n)</dd>
             </div>
             <div>
-              <dt>平均</dt>
+              <dt>Average</dt>
               <dd id="complexity-average">O(n²)</dd>
             </div>
             <div>
-              <dt>最悪</dt>
+              <dt>Worst</dt>
               <dd id="complexity-worst">O(n²)</dd>
             </div>
             <div>
-              <dt>性質</dt>
+              <dt>Trait</dt>
               <dd id="lesson-trait">安定・in-place</dd>
             </div>
           </dl>
-        </div>
-        <aside class="reading-guide" aria-label="グラフの読み方">
-          <p class="section-label">色の読み方</p>
-          <div class="legend">
-            <span><i class="legend-read"></i>読み取り</span>
-            <span><i class="legend-compare"></i>比較</span>
-            <span><i class="legend-write"></i>書き換え</span>
-            <span><i class="legend-sorted"></i>確定済み</span>
-            <span><i class="legend-default"></i>通常</span>
-          </div>
-          <details>
-            <summary>Pythonで書くときの約束</summary>
-            <p>
-              配列の長さと値の集合は変えず、<code>def sort(array):</code>
-              の中で並べ替えてください。読み取り・比較・代入・交換は自動で記録されます。
-              必要なら <code>array.mark_sorted(i)</code> で確定位置を示せます。
-            </p>
-          </details>
-        </aside>
-      </section>
-    </main>
+        </section>
 
-    <footer>
-      <span>© 2020–2026 yhay81</span>
-      <a href="https://github.com/yhay81/code-sortings">GitHubで見る ↗</a>
-    </footer>
+        <section class="inspector-section">
+          <span class="inspector-label">OBSERVE</span>
+          <p id="lesson-focus">
+            ほぼ整列済みの入力では、値をずらす回数が少なくなることに注目しましょう。
+          </p>
+          <p id="pattern-hint">
+            平均的な動きを眺めるのに向いた、順序に偏りのない入力です。
+          </p>
+        </section>
+
+        <section class="inspector-section">
+          <span class="inspector-label">TRACE COLORS</span>
+          <div class="legend" aria-label="棒グラフの色">
+            <span><i class="legend-read"></i>read</span>
+            <span><i class="legend-compare"></i>compare</span>
+            <span><i class="legend-write"></i>write</span>
+            <span><i class="legend-sorted"></i>sorted</span>
+            <span><i class="legend-default"></i>idle</span>
+          </div>
+        </section>
+      </aside>
+
+      <footer class="statusbar">
+        <div>
+          <span class="statusbar-item"
+            >追跡対象: list access / compare / write</span
+          >
+          <span class="statusbar-item">配列: 3–300</span>
+        </div>
+        <div>
+          <span class="shortcut"><kbd>⌘↵</kbd> 実行</span>
+          <span class="shortcut"><kbd>Space</kbd> 再生/停止</span>
+          <a href="https://github.com/yhay81/code-sortings">GitHub ↗</a>
+        </div>
+      </footer>
+    </main>
   </body>
 </html>

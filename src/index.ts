@@ -130,9 +130,14 @@ window.addEventListener("load", () => {
     document.querySelector<HTMLParagraphElement>("#pattern-hint")!;
   const timelineRange =
     document.querySelector<HTMLInputElement>("#timeline-range")!;
+  const patternSelect =
+    document.querySelector<HTMLSelectElement>("#pattern-select")!;
   const editorElement = document.querySelector<HTMLDivElement>("#editor-code")!;
   const lineNumberElement =
     document.querySelector<HTMLDivElement>("#editor-lines")!;
+  const activeLineElement = document.querySelector<HTMLDivElement>(
+    "#editor-active-line",
+  )!;
   const generateButton =
     document.querySelector<HTMLButtonElement>("#generate-button")!;
   const exampleSelect =
@@ -181,9 +186,7 @@ window.addEventListener("load", () => {
     document.querySelector("#lesson-trait")!.textContent = guide.trait;
   };
   const updatePatternHint = (): void => {
-    const selectedPattern = document.querySelector<HTMLInputElement>(
-      'input[name="array-pattern"]:checked',
-    )!.value;
+    const selectedPattern = patternSelect.value;
     patternHintElement.textContent =
       PATTERN_HINTS[selectedPattern] ?? PATTERN_HINTS.random;
   };
@@ -195,11 +198,7 @@ window.addEventListener("load", () => {
     generateButton.disabled = busy;
     countInput.disabled = busy;
     exampleSelect.disabled = busy;
-    document
-      .querySelectorAll<HTMLInputElement>('input[name="array-pattern"]')
-      .forEach((input) => {
-        input.disabled = busy;
-      });
+    patternSelect.disabled = busy;
     updateExampleButtonState();
   };
   const clearVisualization = (): void => {
@@ -209,11 +208,12 @@ window.addEventListener("load", () => {
     document.querySelector("#steps")!.textContent = "0";
     document.querySelector("#frame-position")!.textContent = "0 / 0";
     document.querySelector("#indices")!.textContent = "実行待ち";
-    document.querySelector("#timeline-position")!.textContent =
-      "フレーム 0 / 0";
+    document.querySelector("#editor-source-position")!.textContent = "実行待ち";
+    document.querySelector("#timeline-position")!.textContent = "0 / 0";
     timelineRange.max = "0";
     timelineRange.value = "0";
     timelineRange.disabled = true;
+    activeLineElement.hidden = true;
     document.querySelector("#operation-kind")!.textContent = "実行待ち";
     document.querySelector("#operation-explanation")!.textContent =
       "コードを実行できませんでした";
@@ -229,6 +229,10 @@ window.addEventListener("load", () => {
   const jar = CodeJar(editorElement, highlight, { tab: "    " });
   editorElement.addEventListener("scroll", () => {
     lineNumberElement.scrollTop = editorElement.scrollTop;
+    activeLineElement.style.setProperty(
+      "--editor-scroll",
+      `${editorElement.scrollTop}px`,
+    );
   });
   jar.updateCode(`def sort(array):
     for i in range(1, len(array)):
@@ -248,9 +252,7 @@ window.addEventListener("load", () => {
     setStatus("Pythonコードを実行しています…", "working");
     setEngineStatus("コードを実行中", "working");
 
-    const pattern = document.querySelector<HTMLInputElement>(
-      'input[name="array-pattern"]:checked',
-    )!.value;
+    const pattern = patternSelect.value;
     const parsedCount = Number.parseInt(countInput.value || "20", 10);
     const normalizedCount = Number.isNaN(parsedCount) ? 20 : parsedCount;
     const count = Math.min(300, Math.max(3, normalizedCount));
@@ -331,14 +333,15 @@ window.addEventListener("load", () => {
   });
   updateExampleButtonState();
   updateLesson(exampleSelect.value);
-  document
-    .querySelectorAll<HTMLInputElement>('input[name="array-pattern"]')
-    .forEach((input) => {
-      input.addEventListener("change", updatePatternHint);
-    });
+  patternSelect.addEventListener("change", updatePatternHint);
   updatePatternHint();
 
   window.addEventListener("keydown", (event): void => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      if (!busy) void executeSort();
+      return;
+    }
     const target = event.target as HTMLElement | null;
     if (
       target &&
@@ -367,10 +370,8 @@ window.addEventListener("load", () => {
   });
 
   document.querySelector("#start-button")!.addEventListener("click", () => {
-    void projector.autoPlay(speedInputElement);
-  });
-  document.querySelector("#stop-button")!.addEventListener("click", () => {
-    projector.stopPlay();
+    if (projector.playing) projector.stopPlay();
+    else void projector.autoPlay(speedInputElement);
   });
   document.querySelector("#back-button")!.addEventListener("click", () => {
     projector.back();

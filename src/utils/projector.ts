@@ -141,6 +141,7 @@ export class Projector {
       !timelinePosition ||
       !logElement
     ) {
+      this.updateEditorLine(0, "sort");
       this.updatePlaybackState();
       return;
     }
@@ -160,7 +161,7 @@ export class Projector {
 
     stepsNode.textContent = compares.toLocaleString();
     frameNode.textContent = `${timeline.position.toLocaleString()} / ${totalFrames.toLocaleString()}`;
-    timelinePosition.textContent = `フレーム ${timeline.position.toLocaleString()} / ${totalFrames.toLocaleString()}`;
+    timelinePosition.textContent = `${timeline.position.toLocaleString()} / ${totalFrames.toLocaleString()}`;
     timelineRange.max = totalFrames.toString();
     timelineRange.value = timeline.position.toString();
     timelineRange.disabled = totalFrames === 0;
@@ -168,6 +169,7 @@ export class Projector {
       indicesElement.textContent =
         line > 0 ? `${functionName}() · ${line}行目` : "実行前";
     }
+    this.updateEditorLine(line, functionName);
 
     const explanation = explainOperation(picture);
     const operationKind = document.querySelector("#operation-kind");
@@ -336,8 +338,8 @@ export class Projector {
     const hasTimeline = this.timeline !== null && this.timeline.length > 1;
     const startButton =
       document.querySelector<HTMLButtonElement>("#start-button");
-    const stopButton =
-      document.querySelector<HTMLButtonElement>("#stop-button");
+    const playLabel = document.querySelector("#play-label");
+    const playIcon = document.querySelector("#play-icon");
     const backButton =
       document.querySelector<HTMLButtonElement>("#back-button");
     const forwardButton =
@@ -345,8 +347,16 @@ export class Projector {
     const resetButton =
       document.querySelector<HTMLButtonElement>("#reset-button");
 
-    if (startButton) startButton.disabled = !hasTimeline || this.playing;
-    if (stopButton) stopButton.disabled = !hasTimeline || !this.playing;
+    if (startButton) {
+      startButton.disabled = !hasTimeline;
+      startButton.title = this.playing ? "一時停止" : "再生";
+      startButton.setAttribute(
+        "aria-label",
+        this.playing ? "一時停止" : "再生",
+      );
+    }
+    if (playLabel) playLabel.textContent = this.playing ? "停止" : "再生";
+    if (playIcon) playIcon.textContent = this.playing ? "Ⅱ" : "▶";
     if (backButton) {
       backButton.disabled =
         !hasTimeline || this.playing || Boolean(this.timeline?.isStart);
@@ -358,6 +368,42 @@ export class Projector {
     if (resetButton) {
       resetButton.disabled =
         !hasTimeline || this.playing || Boolean(this.timeline?.isStart);
+    }
+  }
+
+  private updateEditorLine(line: number, functionName: string): void {
+    const activeLine = document.querySelector<HTMLDivElement>(
+      "#editor-active-line",
+    );
+    const editor = document.querySelector<HTMLDivElement>("#editor-code");
+    const sourcePosition = document.querySelector("#editor-source-position");
+    if (!activeLine || !editor) return;
+
+    if (line <= 0) {
+      activeLine.hidden = true;
+      if (sourcePosition) sourcePosition.textContent = "実行前";
+      return;
+    }
+
+    activeLine.hidden = false;
+    const editorStyle = getComputedStyle(editor);
+    const lineHeight = Number.parseFloat(editorStyle.lineHeight);
+    const paddingTop = Number.parseFloat(editorStyle.paddingTop);
+    const lineTop = paddingTop + (line - 1) * lineHeight;
+    const lineBottom = lineTop + lineHeight;
+    if (
+      lineTop < editor.scrollTop ||
+      lineBottom > editor.scrollTop + editor.clientHeight
+    ) {
+      editor.scrollTop = Math.max(0, lineTop - editor.clientHeight / 2);
+      const lineNumbers =
+        document.querySelector<HTMLDivElement>("#editor-lines");
+      if (lineNumbers) lineNumbers.scrollTop = editor.scrollTop;
+    }
+    activeLine.style.setProperty("--line-index", (line - 1).toString());
+    activeLine.style.setProperty("--editor-scroll", `${editor.scrollTop}px`);
+    if (sourcePosition) {
+      sourcePosition.textContent = `${functionName}() · Ln ${line}`;
     }
   }
 }
