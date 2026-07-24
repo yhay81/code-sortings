@@ -9,7 +9,7 @@
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
   "main": "dev-server.js",
   "scripts": {
-    "build": "rm -rf ./dist && mkdir -p ./dist/python && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp ./src/python/runner.py ./dist/python/runner.py && cp -R ./sort_examples ./dist/sort_examples && cp ./public/favicon.ico ./dist/favicon.ico",
+    "build": "rm -rf ./dist && mkdir -p ./dist/python && bun build ./src/index.ts --outdir ./dist --minify --target=browser && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp ./src/python/runner.py ./dist/python/runner.py && cp -R ./sort_examples ./dist/sort_examples && cp ./public/favicon.ico ./public/_headers ./dist/",
     "dev": "rm -rf ./dist && mkdir -p ./dist/python && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp ./src/python/runner.py ./dist/python/runner.py && cp -R ./sort_examples ./dist/sort_examples && cp ./public/favicon.ico ./dist/favicon.ico && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
     "deploy": "bun run check && bun run build && wrangler deploy",
     "deploy:dry-run": "bun run build && wrangler deploy --dry-run",
