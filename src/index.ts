@@ -32,7 +32,7 @@ const CUSTOM_STARTER = `def sort(array):
     pass
 `;
 
-window.addEventListener("load", () => {
+const initialize = (): void => {
   setLocale(resolveInitialLocale(), false);
   translateDocument();
 
@@ -268,7 +268,7 @@ window.addEventListener("load", () => {
     }
     setBusy(true);
     try {
-      const response = await fetch(exampleSelect.value, { cache: "no-store" });
+      const response = await fetch(exampleSelect.value);
       if (!response.ok) {
         throw new Error(t("error.loadExample"));
       }
@@ -380,4 +380,6 @@ window.addEventListener("load", () => {
       const message = error instanceof Error ? error.message : String(error);
       setStatus(() => localizeRunnerError(message), "error");
     });
-});
+};
+
+initialize();
