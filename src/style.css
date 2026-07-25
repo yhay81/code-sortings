@@ -546,6 +546,10 @@ kbd {
   margin: 0 auto;
 }
 
+.chart-bar {
+  transition: fill 90ms ease;
+}
+
 .operation-console {
   min-height: 96px;
   padding: 14px 16px;

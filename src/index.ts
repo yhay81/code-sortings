@@ -140,7 +140,6 @@ const initialize = (): void => {
   ): void => {
     projector.stopPlay();
     projector.timeline = null;
-    document.querySelector("#log svg")?.remove();
     document.querySelector("#steps")!.textContent = "0";
     document.querySelector("#frame-position")!.textContent = "0 / 0";
     document.querySelector("#editor-source-position")!.textContent =
@@ -368,7 +367,7 @@ const initialize = (): void => {
   });
 
   window.addEventListener("beforeunload", () => runner.dispose());
-  const resizeObserver = new ResizeObserver(() => projector.show());
+  const resizeObserver = new ResizeObserver(() => projector.resize());
   resizeObserver.observe(document.querySelector("#log")!);
 
   setStatus(() => t("status.enginePreparing"), "working");

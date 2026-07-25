@@ -1,9 +1,16 @@
-import { select } from "d3-selection";
 import { formatNumber, t } from "../i18n";
+import { BarChartRenderer } from "./barChartRenderer";
 import type { TracePicture, TraceTimeline } from "./traceTimeline";
 
-const sleep = async (ms: number): Promise<void> =>
-  new Promise((resolve) => window.setTimeout(resolve, ms));
+const waitForFrame = async (delay: number): Promise<void> =>
+  new Promise((resolve) => {
+    const startedAt = performance.now();
+    const tick = (timestamp: number): void => {
+      if (timestamp - startedAt >= delay) resolve();
+      else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
 
 interface OperationExplanation {
   kind: string;
@@ -142,10 +149,14 @@ export class Projector {
 
   private playGeneration: number;
 
+  private readonly chart: BarChartRenderer | null;
+
   constructor() {
     this.timeline = null;
     this.playing = false;
     this.playGeneration = 0;
+    const logElement = document.querySelector<HTMLElement>("#log");
+    this.chart = logElement ? new BarChartRenderer(logElement) : null;
   }
 
   show(): void {
@@ -165,6 +176,7 @@ export class Projector {
       !timelinePosition ||
       !logElement
     ) {
+      this.chart?.clear();
       this.updateEditorLine(0, "sort");
       this.updatePlaybackState();
       return;
@@ -172,16 +184,7 @@ export class Projector {
 
     const totalFrames = Math.max(0, timeline.length - 1);
     const picture = timeline.picture;
-    const {
-      array,
-      compares,
-      reads,
-      writes,
-      sorted,
-      line,
-      functionName,
-      comparison,
-    } = picture;
+    const { compares, line, functionName } = picture;
 
     stepsNode.textContent = formatNumber(compares);
     frameNode.textContent = `${formatNumber(timeline.position)} / ${formatNumber(totalFrames)}`;
@@ -206,99 +209,7 @@ export class Projector {
     if (operationDetail) operationDetail.textContent = explanation.detail;
 
     this.updatePlaybackState();
-    if (array.length === 0) {
-      select("#log").select("svg").remove();
-      return;
-    }
-
-    const rootStyle = getComputedStyle(document.documentElement);
-    const colors = {
-      base: rootStyle.getPropertyValue("--bar-default").trim() || "#168c88",
-      read: rootStyle.getPropertyValue("--bar-focus").trim() || "#2874a6",
-      compare: rootStyle.getPropertyValue("--bar-compare").trim() || "#c54536",
-      write: rootStyle.getPropertyValue("--bar-temp").trim() || "#b66b20",
-      sorted: rootStyle.getPropertyValue("--bar-sorted").trim() || "#547f38",
-    };
-    const labelColor =
-      rootStyle.getPropertyValue("--bar-label").trim() || "#ffffff";
-    const labelStroke =
-      rootStyle.getPropertyValue("--bar-label-stroke").trim() ||
-      "rgba(20, 18, 14, 0.65)";
-    const logStyle = getComputedStyle(logElement);
-    const paddingX =
-      Number.parseFloat(logStyle.paddingLeft) +
-      Number.parseFloat(logStyle.paddingRight);
-    const paddingY =
-      Number.parseFloat(logStyle.paddingTop) +
-      Number.parseFloat(logStyle.paddingBottom);
-    const width = Math.max(240, logElement.clientWidth - paddingX);
-    const height = Math.max(160, logElement.clientHeight - paddingY);
-    const barCount = array.length;
-    const barGap = width / barCount <= 1 ? 0 : 1;
-    const barWidth = width / barCount - barGap;
-    const normalizeValue = (value: number): number =>
-      Number.isFinite(value) ? Math.max(0, value) : 0;
-    const maxValue = array.reduce(
-      (max, value) => Math.max(max, normalizeValue(value)),
-      1,
-    );
-    const barHeight = height / maxValue;
-
-    const logSelection = select(logElement);
-    logSelection.select("svg").remove();
-    const svg = logSelection
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("role", "img")
-      .attr(
-        "aria-label",
-        t("chart.label", {
-          comparisons: formatNumber(compares),
-          frame: formatNumber(timeline.position),
-        }),
-      );
-    svg.append("title").text(t("chart.title", { values: array.join(", ") }));
-    svg
-      .selectAll("rect")
-      .data(array)
-      .enter()
-      .append("rect")
-      .attr("x", (_, index: number) => index * (barWidth + barGap))
-      .attr("y", (value: number) => height - normalizeValue(value) * barHeight)
-      .attr("width", barWidth)
-      .attr("height", (value: number) => normalizeValue(value) * barHeight)
-      .attr("rx", Math.min(4, barWidth / 3))
-      .attr("fill", (_, index) => {
-        if (writes.includes(index)) return colors.write;
-        if (comparison && reads.includes(index)) return colors.compare;
-        if (reads.includes(index)) return colors.read;
-        if (sorted.includes(index)) return colors.sorted;
-        return colors.base;
-      });
-
-    if (array.length < 30) {
-      svg
-        .selectAll("text")
-        .data(array)
-        .enter()
-        .append("text")
-        .text((value: number) => value)
-        .attr("text-anchor", "middle")
-        .attr("x", (_, index) => index * (barWidth + barGap) + barWidth / 2)
-        .attr(
-          "y",
-          (value: number) =>
-            height - normalizeValue(value) * barHeight + barWidth / 1.5,
-        )
-        .attr("font-size", () => `${Math.max(10, barWidth / 2).toFixed(1)}px`)
-        .attr("fill", labelColor)
-        .attr("stroke", labelStroke)
-        .attr("stroke-width", "1.8")
-        .attr("font-weight", "700")
-        .style("paint-order", "stroke fill")
-        .style("stroke-linejoin", "round");
-    }
+    this.chart?.render(picture, timeline.position, compares);
   }
 
   async autoPlay(
@@ -323,7 +234,7 @@ export class Projector {
         Number.isFinite(speed) && speed > 0
           ? Math.min(120, Math.max(1, speed))
           : 10;
-      await sleep(1000 / framesPerSecond);
+      await waitForFrame(1000 / framesPerSecond);
       if (
         !this.playing ||
         this.timeline !== currentTimeline ||
@@ -344,6 +255,11 @@ export class Projector {
     this.playing = false;
     this.playGeneration++;
     this.updatePlaybackState();
+  }
+
+  resize(): void {
+    this.chart?.invalidateLayout();
+    this.show();
   }
 
   back(): void {
