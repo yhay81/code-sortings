@@ -1,4 +1,5 @@
 import { select } from "d3-selection";
+import { formatNumber, t } from "../i18n";
 import type { TracePicture, TraceTimeline } from "./traceTimeline";
 
 const sleep = async (ms: number): Promise<void> =>
@@ -11,7 +12,12 @@ interface OperationExplanation {
 }
 
 const sourceLabel = (picture: TracePicture): string =>
-  picture.line > 0 ? `${picture.functionName}() · ${picture.line}行目` : "";
+  picture.line > 0
+    ? t("source.line", {
+        function: picture.functionName,
+        line: picture.line,
+      })
+    : "";
 
 const notesLabel = (picture: TracePicture): string =>
   Object.entries(picture.notes)
@@ -30,12 +36,14 @@ const explainOperation = (picture: TracePicture): OperationExplanation => {
     const indices = newlyMarked
       .slice(0, 4)
       .map((operation) => `array[${operation.index}]`)
-      .join("、");
+      .join(", ");
     const suffix =
-      newlyMarked.length > 4 ? `ほか${newlyMarked.length - 4}件` : "";
+      newlyMarked.length > 4
+        ? t("operation.mark.more", { count: newlyMarked.length - 4 })
+        : "";
     return {
-      kind: "位置を確定",
-      title: `${indices}${suffix} を整列済みにしました`,
+      kind: t("operation.mark.kind"),
+      title: t("operation.mark.title", { indices, suffix }),
       detail,
     };
   }
@@ -47,8 +55,11 @@ const explainOperation = (picture: TracePicture): OperationExplanation => {
     firstWrite.after === secondWrite.before;
   if (isSwap) {
     return {
-      kind: "値を交換",
-      title: `array[${firstWrite.index}] と array[${secondWrite.index}] を交換しました`,
+      kind: t("operation.swap.kind"),
+      title: t("operation.swap.title", {
+        left: firstWrite.index,
+        right: secondWrite.index,
+      }),
       detail: `${firstWrite.before} ↔ ${secondWrite.before}${detail ? ` · ${detail}` : ""}`,
     };
   }
@@ -61,11 +72,13 @@ const explainOperation = (picture: TracePicture): OperationExplanation => {
       )
       .join(" · ");
     return {
-      kind: "値を書き換え",
+      kind: t("operation.write.kind"),
       title:
         picture.writeOperations.length === 1
-          ? `array[${firstWrite.index}] を更新しました`
-          : `${picture.writeOperations.length}か所を更新しました`,
+          ? t("operation.write.one", { index: firstWrite.index })
+          : t("operation.write.many", {
+              count: picture.writeOperations.length,
+            }),
       detail: [changes, detail].filter(Boolean).join(" · "),
     };
   }
@@ -78,10 +91,15 @@ const explainOperation = (picture: TracePicture): OperationExplanation => {
     ];
     const [left, right] = uniqueReads.slice(-2);
     if (left && right) {
-      const operator = picture.operators.at(-1) ?? "比較";
+      const operator =
+        picture.operators.at(-1) ?? t("operation.compare.fallback");
       return {
-        kind: "値を比較",
-        title: `array[${left.index}] と array[${right.index}] を「${operator}」で比較`,
+        kind: t("operation.compare.kind"),
+        title: t("operation.compare.title", {
+          left: left.index,
+          right: right.index,
+          operator,
+        }),
         detail: `${left.value} ${operator} ${right.value}${detail ? ` · ${detail}` : ""}`,
       };
     }
@@ -90,24 +108,30 @@ const explainOperation = (picture: TracePicture): OperationExplanation => {
   const lastRead = picture.readOperations.at(-1);
   if (lastRead) {
     return {
-      kind: "値を読む",
-      title: `array[${lastRead.index}] から ${lastRead.value} を読み取りました`,
+      kind: t("operation.read.kind"),
+      title: t("operation.read.title", {
+        index: lastRead.index,
+        value: lastRead.value,
+      }),
       detail,
     };
   }
 
   if (picture.line > 0) {
     return {
-      kind: "コードを進める",
-      title: `${picture.functionName}() の ${picture.line}行目を実行しました`,
-      detail: notes || "この行では配列の値は変わりません",
+      kind: t("operation.advance.kind"),
+      title: t("operation.advance.title", {
+        function: picture.functionName,
+        line: picture.line,
+      }),
+      detail: notes || t("operation.advance.noChange"),
     };
   }
 
   return {
-    kind: "開始位置",
-    title: "実行前の配列です",
-    detail: "再生するか、タイムラインを動かして変化を追ってみましょう",
+    kind: t("operation.start.kind"),
+    title: t("operation.start.title"),
+    detail: t("operation.start.detail"),
   };
 };
 
@@ -159,15 +183,17 @@ export class Projector {
       comparison,
     } = picture;
 
-    stepsNode.textContent = compares.toLocaleString();
-    frameNode.textContent = `${timeline.position.toLocaleString()} / ${totalFrames.toLocaleString()}`;
-    timelinePosition.textContent = `${timeline.position.toLocaleString()} / ${totalFrames.toLocaleString()}`;
+    stepsNode.textContent = formatNumber(compares);
+    frameNode.textContent = `${formatNumber(timeline.position)} / ${formatNumber(totalFrames)}`;
+    timelinePosition.textContent = `${formatNumber(timeline.position)} / ${formatNumber(totalFrames)}`;
     timelineRange.max = totalFrames.toString();
     timelineRange.value = timeline.position.toString();
     timelineRange.disabled = totalFrames === 0;
     if (indicesElement) {
       indicesElement.textContent =
-        line > 0 ? `${functionName}() · ${line}行目` : "実行前";
+        line > 0
+          ? t("source.line", { function: functionName, line })
+          : t("source.before");
     }
     this.updateEditorLine(line, functionName);
 
@@ -227,9 +253,12 @@ export class Projector {
       .attr("role", "img")
       .attr(
         "aria-label",
-        `ソート配列。比較 ${compares} 回、${timeline.position} フレーム目`,
+        t("chart.label", {
+          comparisons: formatNumber(compares),
+          frame: formatNumber(timeline.position),
+        }),
       );
-    svg.append("title").text(`配列: ${array.join(", ")}`);
+    svg.append("title").text(t("chart.title", { values: array.join(", ") }));
     svg
       .selectAll("rect")
       .data(array)
@@ -351,13 +380,19 @@ export class Projector {
 
     if (startButton) {
       startButton.disabled = !hasTimeline;
-      startButton.title = this.playing ? "一時停止（Space）" : "再生（Space）";
+      startButton.title = this.playing
+        ? t("transport.pauseTitle")
+        : t("transport.playTitle");
       startButton.setAttribute(
         "aria-label",
-        this.playing ? "一時停止" : "再生",
+        this.playing ? t("transport.pause") : t("transport.play"),
       );
     }
-    if (playLabel) playLabel.textContent = this.playing ? "停止" : "再生";
+    if (playLabel) {
+      playLabel.textContent = this.playing
+        ? t("transport.stop")
+        : t("transport.play");
+    }
     if (playIcon) playIcon.textContent = this.playing ? "Ⅱ" : "▶";
     if (backButton) {
       backButton.disabled =
@@ -383,7 +418,7 @@ export class Projector {
 
     if (line <= 0) {
       activeLine.hidden = true;
-      if (sourcePosition) sourcePosition.textContent = "実行前";
+      if (sourcePosition) sourcePosition.textContent = t("source.before");
       return;
     }
 
@@ -405,7 +440,10 @@ export class Projector {
     activeLine.style.setProperty("--line-index", (line - 1).toString());
     activeLine.style.setProperty("--editor-scroll", `${editor.scrollTop}px`);
     if (sourcePosition) {
-      sourcePosition.textContent = `${functionName}() · Ln ${line}`;
+      sourcePosition.textContent = t("source.line", {
+        function: functionName,
+        line,
+      });
     }
   }
 }

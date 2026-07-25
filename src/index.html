@@ -14,61 +14,103 @@
   </head>
   <body>
     <header class="titlebar">
-      <a class="brand" href="/" aria-label="Code Sortings ホーム">
+      <a
+        class="brand"
+        href="/"
+        aria-label="Code Sortings ホーム"
+        data-i18n-aria-label="brand.home"
+      >
         <span class="brand-mark" aria-hidden="true">CS</span>
         <strong>CODE SORTINGS</strong>
       </a>
-      <div
-        class="engine-status"
-        id="engine-status"
-        data-state="working"
-        role="status"
-        aria-live="polite"
-      >
-        <span class="status-dot" aria-hidden="true"></span>
-        <span id="engine-label">Pythonを準備中</span>
+      <div class="titlebar-actions">
+        <label class="locale-field" for="locale-select">
+          <span class="sr-only" data-i18n="locale.label">表示言語</span>
+          <select
+            id="locale-select"
+            aria-label="表示言語"
+            data-i18n-aria-label="locale.label"
+          >
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <div
+          class="engine-status"
+          id="engine-status"
+          data-state="working"
+          role="status"
+          aria-live="polite"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="engine-label" data-i18n="engine.preparing"
+            >Pythonを準備中</span
+          >
+        </div>
       </div>
     </header>
 
     <main class="app-shell">
-      <section class="command-bar" aria-label="実行設定">
+      <section
+        class="command-bar"
+        aria-label="実行設定"
+        data-i18n-aria-label="settings.label"
+      >
         <div class="command-group">
           <label class="command-field" for="example-select">
-            <span>アルゴリズム</span>
+            <span data-i18n="field.algorithm">アルゴリズム</span>
             <select id="example-select">
               <option value="sort_examples/insertion_sort.py" selected>
                 Insertion Sort
               </option>
-              <option value="sort_examples/shell_sort.py">Shell Sort</option>
               <option value="sort_examples/bubble_sort.py">Bubble Sort</option>
               <option value="sort_examples/selection_sort.py">
                 Selection Sort
               </option>
-              <option value="sort_examples/quick_sort.py">Quick Sort</option>
-              <option value="sort_examples/merge_sort.py">Merge Sort</option>
-              <option value="sort_examples/heap_sort.py">Heap Sort</option>
               <option value="sort_examples/cocktail_sort.py">
                 Cocktail Sort
               </option>
+              <option value="sort_examples/gnome_sort.py">Gnome Sort</option>
+              <option value="sort_examples/odd_even_sort.py">
+                Odd-Even Sort
+              </option>
+              <option value="sort_examples/shell_sort.py">Shell Sort</option>
+              <option value="sort_examples/comb_sort.py">Comb Sort</option>
+              <option value="sort_examples/merge_sort.py">Merge Sort</option>
+              <option value="sort_examples/quick_sort.py">Quick Sort</option>
+              <option value="sort_examples/heap_sort.py">Heap Sort</option>
+              <option value="sort_examples/counting_sort.py">
+                Counting Sort
+              </option>
+              <option value="sort_examples/radix_sort.py">Radix Sort</option>
+              <option value="sort_examples/cycle_sort.py">Cycle Sort</option>
             </select>
           </label>
           <label class="command-field" for="pattern-select">
-            <span>入力パターン</span>
+            <span data-i18n="field.pattern">入力パターン</span>
             <select id="pattern-select">
-              <option value="random" selected>ランダム</option>
-              <option value="nearly-sorted">ほぼ整列済み</option>
-              <option value="reversed">逆順</option>
-              <option value="few-unique">重複が多い</option>
+              <option value="random" selected data-i18n="pattern.random">
+                ランダム
+              </option>
+              <option value="nearly-sorted" data-i18n="pattern.nearlySorted">
+                ほぼ整列済み
+              </option>
+              <option value="reversed" data-i18n="pattern.reversed">
+                逆順
+              </option>
+              <option value="few-unique" data-i18n="pattern.fewUnique">
+                重複が多い
+              </option>
             </select>
           </label>
           <label class="command-field command-field--number" for="length">
-            <span>要素数</span>
+            <span data-i18n="field.length">要素数</span>
             <input id="length" type="number" value="20" min="3" max="300" />
           </label>
         </div>
         <button class="run-button" id="generate-button" type="button">
           <span aria-hidden="true">▶</span>
-          実行
+          <span data-i18n="action.run">実行</span>
           <kbd>⌘↵</kbd>
         </button>
       </section>
@@ -92,12 +134,15 @@
               id="editor-code"
               role="textbox"
               aria-label="Pythonソートコード"
+              data-i18n-aria-label="editor.label"
               aria-multiline="true"
               spellcheck="false"
             ></div>
           </div>
           <div class="pane-footer">
-            <span id="editor-source-position">実行待ち</span>
+            <span id="editor-source-position" data-i18n="source.waiting"
+              >実行待ち</span
+            >
           </div>
         </section>
 
@@ -107,10 +152,17 @@
               <span class="visualizer-icon" aria-hidden="true">▥</span>
               <h2 id="visualizer-title">Visualizer</h2>
             </div>
-            <div class="view-metrics" aria-label="実行メトリクス">
-              <span><small>比較</small><strong id="steps">0</strong></span>
+            <div
+              class="view-metrics"
+              aria-label="実行メトリクス"
+              data-i18n-aria-label="metrics.label"
+            >
               <span
-                ><small>フレーム</small
+                ><small data-i18n="metrics.comparisons">比較</small
+                ><strong id="steps">0</strong></span
+              >
+              <span
+                ><small data-i18n="metrics.frames">フレーム</small
                 ><strong id="frame-position">0 / 0</strong></span
               >
             </div>
@@ -121,9 +173,16 @@
             <div class="operation-console" aria-atomic="true">
               <div class="console-prompt" aria-hidden="true">›</div>
               <div>
-                <p id="operation-kind">開始位置</p>
-                <h3 id="operation-explanation">実行前の配列です</h3>
-                <div id="operation-detail">
+                <p id="operation-kind" data-i18n="operation.start.kind">
+                  開始位置
+                </p>
+                <h3
+                  id="operation-explanation"
+                  data-i18n="operation.start.title"
+                >
+                  実行前の配列です
+                </h3>
+                <div id="operation-detail" data-i18n="operation.boot.detail">
                   Pythonの準備ができると、自動で最初のコードを実行します。
                 </div>
               </div>
@@ -132,7 +191,9 @@
 
           <div class="playback">
             <div class="timeline-row">
-              <label for="timeline-range">タイムライン</label>
+              <label for="timeline-range" data-i18n="timeline.label"
+                >タイムライン</label
+              >
               <input
                 id="timeline-range"
                 type="range"
@@ -144,40 +205,60 @@
               />
               <output id="timeline-position" for="timeline-range">0 / 0</output>
             </div>
-            <div class="transport" aria-label="再生操作">
-              <button id="reset-button" type="button" title="先頭へ" disabled>
+            <div
+              class="transport"
+              aria-label="再生操作"
+              data-i18n-aria-label="transport.label"
+            >
+              <button
+                id="reset-button"
+                type="button"
+                title="先頭へ"
+                data-i18n-title="transport.firstTitle"
+                disabled
+              >
                 ↤
-                <span>先頭</span>
+                <span data-i18n="transport.first">先頭</span>
               </button>
-              <button id="back-button" type="button" title="1コマ戻る" disabled>
+              <button
+                id="back-button"
+                type="button"
+                title="1コマ戻る"
+                data-i18n-title="transport.backTitle"
+                disabled
+              >
                 ←
-                <span>戻る</span>
+                <span data-i18n="transport.back">戻る</span>
               </button>
               <button
                 class="transport-play"
                 id="start-button"
                 type="button"
                 title="再生"
+                data-i18n-title="transport.playTitle"
                 disabled
               >
                 <span aria-hidden="true" id="play-icon">▶</span>
-                <span id="play-label">再生</span>
+                <span id="play-label" data-i18n="transport.play">再生</span>
               </button>
               <button
                 id="forward-button"
                 type="button"
                 title="1コマ進む"
+                data-i18n-title="transport.forwardTitle"
                 disabled
               >
                 →
-                <span>進む</span>
+                <span data-i18n="transport.forward">進む</span>
               </button>
               <label class="speed-field" for="speed">
-                <span>速さ</span>
+                <span data-i18n="speed.label">速さ</span>
                 <select id="speed">
-                  <option value="5">ゆっくり</option>
-                  <option value="10" selected>ふつう</option>
-                  <option value="30">はやい</option>
+                  <option value="5" data-i18n="speed.slow">ゆっくり</option>
+                  <option value="10" selected data-i18n="speed.normal">
+                    ふつう
+                  </option>
+                  <option value="30" data-i18n="speed.fast">はやい</option>
                 </select>
               </label>
             </div>
@@ -189,6 +270,7 @@
             role="status"
             aria-live="polite"
             data-state="working"
+            data-i18n="status.enginePreparing"
           >
             Pythonエンジンを準備しています…
           </div>
@@ -197,37 +279,47 @@
 
       <aside class="inspector" aria-labelledby="lesson-title">
         <section class="inspector-section inspector-section--algorithm">
-          <span class="inspector-label">アルゴリズム</span>
+          <span class="inspector-label" data-i18n="lesson.algorithm"
+            >アルゴリズム</span
+          >
           <h2 id="lesson-title">Insertion Sort</h2>
           <p id="lesson-summary">
             左側の整列済み部分へ、次の値を正しい位置まで差し込みます。
           </p>
         </section>
 
-        <section class="inspector-section complexity" aria-label="計算量">
-          <span class="inspector-label">計算量</span>
+        <section
+          class="inspector-section complexity"
+          aria-label="計算量"
+          data-i18n-aria-label="lesson.complexity"
+        >
+          <span class="inspector-label" data-i18n="lesson.complexity"
+            >計算量</span
+          >
           <dl>
             <div>
-              <dt>最良</dt>
+              <dt data-i18n="lesson.best">最良</dt>
               <dd id="complexity-best">O(n)</dd>
             </div>
             <div>
-              <dt>平均</dt>
+              <dt data-i18n="lesson.average">平均</dt>
               <dd id="complexity-average">O(n²)</dd>
             </div>
             <div>
-              <dt>最悪</dt>
+              <dt data-i18n="lesson.worst">最悪</dt>
               <dd id="complexity-worst">O(n²)</dd>
             </div>
             <div>
-              <dt>特徴</dt>
+              <dt data-i18n="lesson.trait">特徴</dt>
               <dd id="lesson-trait">安定・in-place</dd>
             </div>
           </dl>
         </section>
 
         <section class="inspector-section">
-          <span class="inspector-label">見るポイント</span>
+          <span class="inspector-label" data-i18n="lesson.focus"
+            >見るポイント</span
+          >
           <p id="lesson-focus">
             ほぼ整列済みの入力では、値をずらす回数が少なくなることに注目しましょう。
           </p>

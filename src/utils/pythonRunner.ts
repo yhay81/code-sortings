@@ -1,4 +1,5 @@
 import type { PythonRunResult } from "./traceTimeline";
+import { t } from "../i18n";
 
 interface RunnerReadyMessage {
   type: "ready";
@@ -56,12 +57,12 @@ export class PythonRunner {
     input: number[],
     options: { timeoutMs?: number; maxSteps?: number } = {},
   ): Promise<PythonRunResult> {
-    this.cancel("新しい実行を開始しました");
+    this.cancel(t("runner.cancelled"));
     await this.ensureReady();
 
     const id = this.nextRunId++;
     const timeoutMs = options.timeoutMs ?? 15_000;
-    const maxSteps = options.maxSteps ?? 100_000;
+    const maxSteps = options.maxSteps ?? 200_000;
     return new Promise<PythonRunResult>((resolve, reject) => {
       const timer = window.setTimeout(() => {
         if (this.activeRun?.id !== id) return;
@@ -69,7 +70,9 @@ export class PythonRunner {
         this.disposeWorker();
         reject(
           new Error(
-            `実行が ${Math.round(timeoutMs / 1000)} 秒を超えたため停止しました`,
+            t("runner.timeout", {
+              seconds: Math.round(timeoutMs / 1000),
+            }),
           ),
         );
       }, timeoutMs);
@@ -84,7 +87,7 @@ export class PythonRunner {
     });
   }
 
-  public cancel(message = "実行を停止しました"): void {
+  public cancel(message = t("runner.stopped")): void {
     if (!this.activeRun) return;
     const active = this.activeRun;
     this.activeRun = null;
@@ -116,9 +119,7 @@ export class PythonRunner {
       this.resolveReady = resolve;
       this.rejectReady = reject;
       this.bootTimer = window.setTimeout(() => {
-        this.rejectBoot(
-          new Error("Pythonエンジンの起動がタイムアウトしました"),
-        );
+        this.rejectBoot(new Error(t("runner.bootTimeout")));
       }, 30_000);
     });
     return this.readyPromise;

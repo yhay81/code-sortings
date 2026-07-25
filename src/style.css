@@ -80,6 +80,18 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 code,
 kbd,
 select,
@@ -136,6 +148,28 @@ kbd {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.locale-field {
+  display: inline-flex;
+}
+
+.locale-field select {
+  width: 100px;
+  height: 34px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--text);
+  background: var(--panel);
+  font-size: 13px;
 }
 
 .engine-status {
@@ -821,18 +855,33 @@ kbd {
   }
 
   .brand-mark {
-    width: 28px;
-    height: 28px;
+    display: none;
   }
 
   .brand strong {
     font-size: 12px;
   }
 
+  .titlebar-actions {
+    gap: 8px;
+  }
+
+  .locale-field select {
+    width: 78px;
+    height: 32px;
+    padding-right: 23px;
+    padding-left: 7px;
+    font-size: 12px;
+  }
+
   .engine-status {
-    max-width: 145px;
+    max-width: 100px;
     font-size: 11px;
     text-align: right;
+  }
+
+  .engine-status .status-dot {
+    display: none;
   }
 
   .app-shell {

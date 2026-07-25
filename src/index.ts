@@ -1,6 +1,18 @@
 import { CodeJar } from "codejar";
 import hljs from "highlight.js/lib/core";
 import python from "highlight.js/lib/languages/python";
+import { getExampleGuide } from "./guides";
+import {
+  formatNumber,
+  getLocale,
+  localizeRunnerError,
+  resolveInitialLocale,
+  setLocale,
+  t,
+  translateDocument,
+  type Locale,
+  type TranslationKey,
+} from "./i18n";
 import { createArray } from "./utils/initialArray";
 import { Projector } from "./utils/projector";
 import { PythonRunner } from "./utils/pythonRunner";
@@ -9,111 +21,17 @@ import "./style.css";
 
 hljs.registerLanguage("python", python);
 
-interface ExampleGuide {
-  title: string;
-  summary: string;
-  focus: string;
-  best: string;
-  average: string;
-  worst: string;
-  trait: string;
-}
-
-const EXAMPLE_GUIDES: Record<string, ExampleGuide> = {
-  "sort_examples/insertion_sort.py": {
-    title: "Insertion Sort",
-    summary: "左側の整列済み部分へ、次の値を正しい位置まで差し込みます。",
-    focus:
-      "「ほぼ整列済み」に変えると、値をずらす回数が少なくなることに注目しましょう。",
-    best: "O(n)",
-    average: "O(n²)",
-    worst: "O(n²)",
-    trait: "安定・in-place",
-  },
-  "sort_examples/shell_sort.py": {
-    title: "Shell Sort",
-    summary: "離れた要素を先に整え、間隔を縮めながら挿入ソートへ近づけます。",
-    focus:
-      "グラフ上の note「gap」が小さくなるたび、比較する距離がどう変わるか見てみましょう。",
-    best: "ギャップ列に依存",
-    average: "ギャップ列に依存",
-    worst: "O(n²)",
-    trait: "不安定・in-place",
-  },
-  "sort_examples/bubble_sort.py": {
-    title: "Bubble Sort",
-    summary: "隣り合う値を比べ、大きい値を右端へ少しずつ運びます。",
-    focus:
-      "一周するたび右端が確定色に変わります。「逆順」で交換の多さを比べてみましょう。",
-    best: "O(n²)",
-    average: "O(n²)",
-    worst: "O(n²)",
-    trait: "安定・in-place",
-  },
-  "sort_examples/selection_sort.py": {
-    title: "Selection Sort",
-    summary: "未整列部分の最小値を探し、先頭の値と入れ替えます。",
-    focus:
-      "入力の並び方を変えても、最小値を探す比較回数がほぼ変わらない点が特徴です。",
-    best: "O(n²)",
-    average: "O(n²)",
-    worst: "O(n²)",
-    trait: "不安定・in-place",
-  },
-  "sort_examples/quick_sort.py": {
-    title: "Quick Sort",
-    summary:
-      "基準値 pivot より小さい側と大きい側に分け、同じ処理を再帰します。",
-    focus:
-      "note「pivot」を追い、基準値の選び方で分割の偏りがどう変わるか観察しましょう。",
-    best: "O(n log n)",
-    average: "O(n log n)",
-    worst: "O(n²)",
-    trait: "不安定・再帰",
-  },
-  "sort_examples/merge_sort.py": {
-    title: "Merge Sort",
-    summary: "配列を半分ずつに分け、整列済みの小さな列として結合します。",
-    focus:
-      "書き換えが連続する区間に注目すると、左右の列を一つに戻す過程が見えてきます。",
-    best: "O(n log n)",
-    average: "O(n log n)",
-    worst: "O(n log n)",
-    trait: "安定・追加領域 O(n)",
-  },
-  "sort_examples/heap_sort.py": {
-    title: "Heap Sort",
-    summary: "最大値を取り出しやすいヒープを作り、末尾へ一つずつ確定します。",
-    focus:
-      "先頭の最大値が末尾へ移動した後、ヒープがどのように修復されるかを追いましょう。",
-    best: "O(n log n)",
-    average: "O(n log n)",
-    worst: "O(n log n)",
-    trait: "不安定・in-place",
-  },
-  "sort_examples/cocktail_sort.py": {
-    title: "Cocktail Sort",
-    summary: "左右へ交互に走査し、大きい値と小さい値を両端へ運びます。",
-    focus:
-      "確定色が右端と左端から交互に増える様子を、通常のBubble Sortと比べましょう。",
-    best: "O(n)",
-    average: "O(n²)",
-    worst: "O(n²)",
-    trait: "安定・in-place",
-  },
-};
-
-const PATTERN_HINTS: Record<string, string> = {
-  random: "平均的な動きを眺めるのに向いた、順序に偏りのない入力です。",
-  "nearly-sorted":
-    "すでに近い位置にある値をどう扱うか見えます。挿入ソートの得意な入力です。",
-  reversed:
-    "多くの単純な手法で交換が増えます。最悪時の動きを探るのに向いています。",
-  "few-unique":
-    "同じ値をどう扱うか見えます。比較条件と安定性を考えるきっかけになります。",
+const PATTERN_HINT_KEYS: Record<string, TranslationKey> = {
+  random: "patternHint.random",
+  "nearly-sorted": "patternHint.nearlySorted",
+  reversed: "patternHint.reversed",
+  "few-unique": "patternHint.fewUnique",
 };
 
 window.addEventListener("load", () => {
+  setLocale(resolveInitialLocale(), false);
+  translateDocument();
+
   const projector = new Projector();
   const runner = new PythonRunner();
   let executionGeneration = 0;
@@ -143,6 +61,14 @@ window.addEventListener("load", () => {
     document.querySelector<HTMLButtonElement>("#generate-button")!;
   const exampleSelect =
     document.querySelector<HTMLSelectElement>("#example-select")!;
+  const localeSelect =
+    document.querySelector<HTMLSelectElement>("#locale-select")!;
+  localeSelect.value = getLocale();
+
+  type StatusState = "ok" | "error" | "working";
+  type MessageRenderer = () => string;
+  let statusRenderer: MessageRenderer = () => t("status.enginePreparing");
+  let engineRenderer: MessageRenderer = () => t("engine.preparing");
 
   const updateLineNumbers = (code: string): void => {
     const lines = code.split("\n").length;
@@ -159,22 +85,23 @@ window.addEventListener("load", () => {
     updateLineNumbers(code);
   };
   const setStatus = (
-    message: string,
-    state: "ok" | "error" | "working" = "ok",
+    renderer: MessageRenderer,
+    state: StatusState = "ok",
   ): void => {
-    statusElement.textContent = message;
+    statusRenderer = renderer;
+    statusElement.textContent = renderer();
     statusElement.dataset.state = state;
   };
   const setEngineStatus = (
-    message: string,
-    state: "ok" | "error" | "working" = "ok",
+    renderer: MessageRenderer,
+    state: StatusState = "ok",
   ): void => {
-    engineLabelElement.textContent = message;
+    engineRenderer = renderer;
+    engineLabelElement.textContent = renderer();
     engineStatusElement.dataset.state = state;
   };
   const updateLesson = (path: string): void => {
-    const guide =
-      EXAMPLE_GUIDES[path] ?? EXAMPLE_GUIDES["sort_examples/insertion_sort.py"];
+    const guide = getExampleGuide(path, getLocale());
     document.querySelector("#lesson-title")!.textContent = guide.title;
     document.querySelector("#lesson-summary")!.textContent = guide.summary;
     document.querySelector("#lesson-focus")!.textContent = guide.focus;
@@ -184,9 +111,9 @@ window.addEventListener("load", () => {
     document.querySelector("#lesson-trait")!.textContent = guide.trait;
   };
   const updatePatternHint = (): void => {
-    const selectedPattern = patternSelect.value;
-    patternHintElement.textContent =
-      PATTERN_HINTS[selectedPattern] ?? PATTERN_HINTS.random;
+    const hintKey =
+      PATTERN_HINT_KEYS[patternSelect.value] ?? PATTERN_HINT_KEYS.random;
+    patternHintElement.textContent = t(hintKey);
   };
   const setBusy = (nextBusy: boolean): void => {
     busy = nextBusy;
@@ -201,23 +128,27 @@ window.addEventListener("load", () => {
     document.querySelector("#log svg")?.remove();
     document.querySelector("#steps")!.textContent = "0";
     document.querySelector("#frame-position")!.textContent = "0 / 0";
-    document.querySelector("#editor-source-position")!.textContent = "実行待ち";
+    document.querySelector("#editor-source-position")!.textContent =
+      t("source.waiting");
     document.querySelector("#timeline-position")!.textContent = "0 / 0";
     timelineRange.max = "0";
     timelineRange.value = "0";
     timelineRange.disabled = true;
     activeLineElement.hidden = true;
-    document.querySelector("#operation-kind")!.textContent = "実行待ち";
-    document.querySelector("#operation-explanation")!.textContent =
-      "コードを実行できませんでした";
-    document.querySelector("#operation-detail")!.textContent =
-      "エラーの内容を確認して、コードを修正してください。";
+    document.querySelector("#operation-kind")!.textContent =
+      t("source.waiting");
+    document.querySelector("#operation-explanation")!.textContent = t(
+      "error.visualizationTitle",
+    );
+    document.querySelector("#operation-detail")!.textContent = t(
+      "error.visualizationDetail",
+    );
     projector.show();
   };
 
   editorElement.setAttribute("role", "textbox");
   editorElement.setAttribute("aria-multiline", "true");
-  editorElement.setAttribute("aria-label", "Pythonソートコード");
+  editorElement.setAttribute("aria-label", t("editor.label"));
   editorElement.setAttribute("spellcheck", "false");
   const jar = CodeJar(editorElement, highlight, { tab: "    " });
   editorElement.addEventListener("scroll", () => {
@@ -242,8 +173,8 @@ window.addEventListener("load", () => {
     const generation = ++executionGeneration;
     projector.stopPlay();
     setBusy(true);
-    setStatus("Pythonコードを実行しています…", "working");
-    setEngineStatus("コードを実行中", "working");
+    setStatus(() => t("status.executing"), "working");
+    setEngineStatus(() => t("engine.running"), "working");
 
     const pattern = patternSelect.value;
     const parsedCount = Number.parseInt(countInput.value || "20", 10);
@@ -257,7 +188,10 @@ window.addEventListener("load", () => {
       if (generation !== executionGeneration) return;
       if (!result.ok) {
         clearVisualization();
-        setStatus(`${result.errorType}: ${result.message}`, "error");
+        setStatus(
+          () => `${result.errorType}: ${localizeRunnerError(result.message)}`,
+          "error",
+        );
         if (result.traceback) console.error(result.traceback);
         return;
       }
@@ -266,32 +200,38 @@ window.addEventListener("load", () => {
       if (result.events.length > 0) projector.timeline.forward();
       projector.show();
       if (!result.preservesValues) {
-        setStatus(
-          "実行は完了しましたが、元の配列と値の構成が変わっています",
-          "error",
-        );
+        setStatus(() => t("status.valuesChanged"), "error");
       } else if (!result.isSorted) {
         setStatus(
-          `実行は完了しましたが、配列は昇順になっていません（Python ${runner.pythonVersion}）`,
+          () =>
+            t("status.notSorted", {
+              version: runner.pythonVersion,
+            }),
           "error",
         );
       } else {
-        const samplingLabel = result.sampled
-          ? ` · ${result.rawSteps.toLocaleString()}操作から間引き`
-          : "";
-        setStatus(
-          `実行完了 · ${result.events.length.toLocaleString()}フレーム${samplingLabel} · Python ${runner.pythonVersion}`,
-        );
+        setStatus(() => {
+          const sampling = result.sampled
+            ? t("status.sampled", {
+                steps: formatNumber(result.rawSteps),
+              })
+            : "";
+          return t("status.complete", {
+            frames: formatNumber(result.events.length),
+            sampling,
+            version: runner.pythonVersion,
+          });
+        });
       }
     } catch (error) {
       if (generation !== executionGeneration) return;
       clearVisualization();
       const message = error instanceof Error ? error.message : String(error);
-      setStatus(message, "error");
+      setStatus(() => localizeRunnerError(message), "error");
     } finally {
       if (generation === executionGeneration) {
         setBusy(false);
-        setEngineStatus("Python 準備完了");
+        setEngineStatus(() => t("engine.ready"));
       }
     }
   };
@@ -302,7 +242,7 @@ window.addEventListener("load", () => {
     try {
       const response = await fetch(exampleSelect.value, { cache: "no-store" });
       if (!response.ok) {
-        throw new Error("例コードの読み込みに失敗しました");
+        throw new Error(t("error.loadExample"));
       }
       jar.updateCode(await response.text());
       updateLineNumbers(jar.toString());
@@ -312,7 +252,7 @@ window.addEventListener("load", () => {
       await executeSort();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      setStatus(message, "error");
+      setStatus(() => localizeRunnerError(message), "error");
       console.error(error);
       setBusy(false);
     }
@@ -324,6 +264,18 @@ window.addEventListener("load", () => {
   updateLesson(exampleSelect.value);
   patternSelect.addEventListener("change", updatePatternHint);
   updatePatternHint();
+  localeSelect.addEventListener("change", () => {
+    const nextLocale = localeSelect.value as Locale;
+    if (nextLocale !== "ja" && nextLocale !== "en") return;
+    setLocale(nextLocale);
+    translateDocument();
+    editorElement.setAttribute("aria-label", t("editor.label"));
+    updateLesson(exampleSelect.value);
+    updatePatternHint();
+    statusElement.textContent = statusRenderer();
+    engineLabelElement.textContent = engineRenderer();
+    projector.show();
+  });
 
   window.addEventListener("keydown", (event): void => {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -384,18 +336,18 @@ window.addEventListener("load", () => {
   const resizeObserver = new ResizeObserver(() => projector.show());
   resizeObserver.observe(document.querySelector("#log")!);
 
-  setStatus("Pythonエンジンを準備しています…", "working");
-  setEngineStatus("Pythonを準備中", "working");
+  setStatus(() => t("status.enginePreparing"), "working");
+  setEngineStatus(() => t("engine.preparing"), "working");
   void runner
     .warm()
     .then(() => {
-      setEngineStatus("Python 準備完了");
+      setEngineStatus(() => t("engine.ready"));
       return executeSort();
     })
     .catch((error: unknown) => {
       setBusy(false);
       const message = error instanceof Error ? error.message : String(error);
-      setStatus(message, "error");
-      setEngineStatus("Pythonの準備に失敗", "error");
+      setStatus(() => localizeRunnerError(message), "error");
+      setEngineStatus(() => t("engine.failed"), "error");
     });
 });
