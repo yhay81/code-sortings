@@ -1,6 +1,10 @@
-import { CodeJar } from "codejar";
-import hljs from "highlight.js/lib/core";
-import python from "highlight.js/lib/languages/python";
+import {
+  CUSTOM_STARTER,
+  DEFAULT_SOURCE,
+  SortingCodeEditor,
+} from "./app/codeEditor";
+import { bindAppElements } from "./app/elements";
+import { renderLesson } from "./app/lessonView";
 import { CUSTOM_EXAMPLE_PATH, getExampleGuide } from "./guides";
 import {
   formatNumber,
@@ -19,8 +23,6 @@ import { PythonRunner } from "./utils/pythonRunner";
 import { TraceTimeline } from "./utils/traceTimeline";
 import "./style.css";
 
-hljs.registerLanguage("python", python);
-
 const PATTERN_HINT_KEYS: Record<string, TranslationKey> = {
   random: "patternHint.random",
   "nearly-sorted": "patternHint.nearlySorted",
@@ -28,68 +30,40 @@ const PATTERN_HINT_KEYS: Record<string, TranslationKey> = {
   "few-unique": "patternHint.fewUnique",
 };
 
-const CUSTOM_STARTER = `def sort(array):
-    pass
-`;
-
 const initialize = (): void => {
   setLocale(resolveInitialLocale(), false);
   translateDocument();
 
+  const elements = bindAppElements();
   const projector = new Projector();
   const runner = new PythonRunner();
+  const editor = new SortingCodeEditor(
+    elements.editor,
+    elements.lineNumbers,
+    elements.activeLine,
+  );
   let executionGeneration = 0;
   let busy = true;
 
-  const countInput = document.querySelector<HTMLInputElement>("#length")!;
-  const speedInputElement =
-    document.querySelector<HTMLSelectElement>("#speed")!;
-  const statusElement = document.querySelector<HTMLDivElement>("#error-log")!;
-  const patternHintElement =
-    document.querySelector<HTMLParagraphElement>("#pattern-hint")!;
-  const timelineRange =
-    document.querySelector<HTMLInputElement>("#timeline-range")!;
-  const patternSelect =
-    document.querySelector<HTMLSelectElement>("#pattern-select")!;
-  const editorElement = document.querySelector<HTMLDivElement>("#editor-code")!;
-  const lineNumberElement =
-    document.querySelector<HTMLDivElement>("#editor-lines")!;
-  const activeLineElement = document.querySelector<HTMLDivElement>(
-    "#editor-active-line",
-  )!;
-  const generateButton =
-    document.querySelector<HTMLButtonElement>("#generate-button")!;
-  const exampleSelect =
-    document.querySelector<HTMLSelectElement>("#example-select")!;
-  const newSortButton =
-    document.querySelector<HTMLButtonElement>("#new-sort-button")!;
-  const lessonReference =
-    document.querySelector<HTMLAnchorElement>("#lesson-reference")!;
-  const lessonReferenceLabel = document.querySelector<HTMLSpanElement>(
-    "#lesson-reference-label",
-  )!;
-  const localeSelect =
-    document.querySelector<HTMLSelectElement>("#locale-select")!;
+  const {
+    activeLine: activeLineElement,
+    countInput,
+    exampleSelect,
+    generateButton,
+    localeSelect,
+    newSortButton,
+    patternHint: patternHintElement,
+    patternSelect,
+    speedSelect: speedInputElement,
+    status: statusElement,
+    timelineRange,
+  } = elements;
   localeSelect.value = getLocale();
 
   type StatusState = "ok" | "error" | "working";
   type MessageRenderer = () => string;
   let statusRenderer: MessageRenderer = () => t("status.enginePreparing");
 
-  const updateLineNumbers = (code: string): void => {
-    const lines = code.split("\n").length;
-    lineNumberElement.textContent = new Array(lines)
-      .fill(null)
-      .map((_, index) => (index + 1).toString())
-      .join("\n");
-  };
-  const highlight = (editor: HTMLElement): void => {
-    const code = editor.textContent ?? "";
-    editor.innerHTML = code.length
-      ? hljs.highlight(code, { language: "python" }).value
-      : "";
-    updateLineNumbers(code);
-  };
   const setStatus = (
     renderer: MessageRenderer,
     state: StatusState = "ok",
@@ -99,27 +73,7 @@ const initialize = (): void => {
     statusElement.dataset.state = state;
   };
   const updateLesson = (path: string): void => {
-    const guide = getExampleGuide(path, getLocale());
-    document.querySelector("#lesson-title")!.textContent = guide.title;
-    document.querySelector("#lesson-summary")!.textContent = guide.summary;
-    document.querySelector("#lesson-focus")!.textContent = guide.focus;
-    document.querySelector("#complexity-best")!.textContent = guide.best;
-    document.querySelector("#complexity-average")!.textContent = guide.average;
-    document.querySelector("#complexity-worst")!.textContent = guide.worst;
-    document.querySelector("#lesson-trait")!.textContent = guide.trait;
-    lessonReferenceLabel.textContent = t("lesson.learnMore");
-    if (guide.referenceUrl) {
-      lessonReference.href = guide.referenceUrl;
-      lessonReference.setAttribute(
-        "aria-label",
-        t("lesson.learnMoreAria", { algorithm: guide.title }),
-      );
-      lessonReference.hidden = false;
-    } else {
-      lessonReference.removeAttribute("href");
-      lessonReference.removeAttribute("aria-label");
-      lessonReference.hidden = true;
-    }
+    renderLesson(elements, path, getLocale());
   };
   const updatePatternHint = (): void => {
     const hintKey =
@@ -140,44 +94,21 @@ const initialize = (): void => {
   ): void => {
     projector.stopPlay();
     projector.timeline = null;
-    document.querySelector("#steps")!.textContent = "0";
-    document.querySelector("#frame-position")!.textContent = "0 / 0";
-    document.querySelector("#editor-source-position")!.textContent =
-      t("source.waiting");
-    document.querySelector("#timeline-position")!.textContent = "0 / 0";
+    elements.steps.textContent = "0";
+    elements.framePosition.textContent = "0 / 0";
+    elements.sourcePosition.textContent = t("source.waiting");
+    elements.timelinePosition.textContent = "0 / 0";
     timelineRange.max = "0";
     timelineRange.value = "0";
     timelineRange.disabled = true;
     activeLineElement.hidden = true;
-    document.querySelector("#operation-kind")!.textContent =
-      t("source.waiting");
-    document.querySelector("#operation-explanation")!.textContent = title;
-    document.querySelector("#operation-detail")!.textContent = detail;
+    elements.operationKind.textContent = t("source.waiting");
+    elements.operationTitle.textContent = title;
+    elements.operationDetail.textContent = detail;
     projector.show();
   };
 
-  editorElement.setAttribute("role", "textbox");
-  editorElement.setAttribute("aria-multiline", "true");
-  editorElement.setAttribute("aria-label", t("editor.label"));
-  editorElement.setAttribute("spellcheck", "false");
-  const jar = CodeJar(editorElement, highlight, { tab: "    " });
-  editorElement.addEventListener("scroll", () => {
-    lineNumberElement.scrollTop = editorElement.scrollTop;
-    activeLineElement.style.setProperty(
-      "--editor-scroll",
-      `${editorElement.scrollTop}px`,
-    );
-  });
-  jar.updateCode(`def sort(array):
-    for i in range(1, len(array)):
-        temp = array[i]
-        j = i
-        while j >= 1 and array[j - 1] > temp:
-            array[j] = array[j - 1]
-            j -= 1
-        array[j] = temp
-`);
-  updateLineNumbers(jar.toString());
+  editor.setCode(DEFAULT_SOURCE);
 
   const executeSort = async (): Promise<void> => {
     const generation = ++executionGeneration;
@@ -193,7 +124,7 @@ const initialize = (): void => {
     const array = createArray(count, pattern);
 
     try {
-      const result = await runner.run(jar.toString(), array);
+      const result = await runner.run(editor.code, array);
       if (generation !== executionGeneration) return;
       if (!result.ok) {
         clearVisualization();
@@ -248,15 +179,12 @@ const initialize = (): void => {
     ++executionGeneration;
     const guide = getExampleGuide(CUSTOM_EXAMPLE_PATH, getLocale());
     projector.stopPlay();
-    jar.updateCode(CUSTOM_STARTER);
-    updateLineNumbers(jar.toString());
-    editorElement.scrollTop = 0;
-    lineNumberElement.scrollTop = 0;
+    editor.setCode(CUSTOM_STARTER);
     updateLesson(CUSTOM_EXAMPLE_PATH);
     clearVisualization(guide.title, guide.focus);
     setStatus(() => t("status.customReady"));
     setBusy(false);
-    requestAnimationFrame(() => editorElement.focus());
+    requestAnimationFrame(() => editor.focus());
   };
 
   const loadExample = async (): Promise<void> => {
@@ -271,10 +199,7 @@ const initialize = (): void => {
       if (!response.ok) {
         throw new Error(t("error.loadExample"));
       }
-      jar.updateCode(await response.text());
-      updateLineNumbers(jar.toString());
-      editorElement.scrollTop = 0;
-      lineNumberElement.scrollTop = 0;
+      editor.setCode(await response.text());
       updateLesson(exampleSelect.value);
       await executeSort();
     } catch (error) {
@@ -290,7 +215,7 @@ const initialize = (): void => {
   });
   newSortButton.addEventListener("click", () => {
     if (exampleSelect.value === CUSTOM_EXAMPLE_PATH) {
-      editorElement.focus();
+      editor.focus();
       return;
     }
     exampleSelect.value = CUSTOM_EXAMPLE_PATH;
@@ -304,7 +229,7 @@ const initialize = (): void => {
     if (!isLocale(nextLocale)) return;
     setLocale(nextLocale);
     translateDocument();
-    editorElement.setAttribute("aria-label", t("editor.label"));
+    editor.updateAccessibility();
     updateLesson(exampleSelect.value);
     updatePatternHint();
     statusElement.textContent = statusRenderer();
@@ -344,17 +269,17 @@ const initialize = (): void => {
     }
   });
 
-  document.querySelector("#start-button")!.addEventListener("click", () => {
+  elements.startButton.addEventListener("click", () => {
     if (projector.playing) projector.stopPlay();
     else void projector.autoPlay(speedInputElement);
   });
-  document.querySelector("#back-button")!.addEventListener("click", () => {
+  elements.backButton.addEventListener("click", () => {
     projector.back();
   });
-  document.querySelector("#forward-button")!.addEventListener("click", () => {
+  elements.forwardButton.addEventListener("click", () => {
     projector.forward();
   });
-  document.querySelector("#reset-button")!.addEventListener("click", () => {
+  elements.resetButton.addEventListener("click", () => {
     projector.stopPlay();
     projector.timeline?.reset();
     projector.show();
@@ -368,7 +293,7 @@ const initialize = (): void => {
 
   window.addEventListener("beforeunload", () => runner.dispose());
   const resizeObserver = new ResizeObserver(() => projector.resize());
-  resizeObserver.observe(document.querySelector("#log")!);
+  resizeObserver.observe(elements.log);
 
   setStatus(() => t("status.enginePreparing"), "working");
   void runner
