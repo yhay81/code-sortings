@@ -1,4 +1,22 @@
-/*
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/runner.worker.mjs
+  Cache-Control: public, max-age=0, must-revalidate
+
+/python/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sort_examples/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/favicon.svg
+  Cache-Control: public, max-age=0, must-revalidate
+
+/favicon.ico
   Cache-Control: public, max-age=0, must-revalidate
 
 /index-*.js
