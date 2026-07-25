@@ -23,6 +23,8 @@ import { PythonRunner } from "./utils/pythonRunner";
 import { TraceTimeline } from "./utils/traceTimeline";
 import "./style.css";
 
+declare const __BUILD_VERSION__: string;
+
 const PATTERN_HINT_KEYS: Record<string, TranslationKey> = {
   random: "patternHint.random",
   "nearly-sorted": "patternHint.nearlySorted",
@@ -31,6 +33,8 @@ const PATTERN_HINT_KEYS: Record<string, TranslationKey> = {
 };
 
 const initialize = (): void => {
+  document.documentElement.dataset.build =
+    typeof __BUILD_VERSION__ === "string" ? __BUILD_VERSION__ : "development";
   setLocale(resolveInitialLocale(), false);
   translateDocument();
 
