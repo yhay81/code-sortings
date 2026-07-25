@@ -272,7 +272,9 @@ export class Projector {
     }
   }
 
-  async autoPlay(speedInputElement: HTMLInputElement): Promise<void> {
+  async autoPlay(
+    speedInputElement: HTMLInputElement | HTMLSelectElement,
+  ): Promise<void> {
     if (this.timeline === null || this.playing || this.timeline.length === 0) {
       return;
     }
@@ -349,7 +351,7 @@ export class Projector {
 
     if (startButton) {
       startButton.disabled = !hasTimeline;
-      startButton.title = this.playing ? "一時停止" : "再生";
+      startButton.title = this.playing ? "一時停止（Space）" : "再生（Space）";
       startButton.setAttribute(
         "aria-label",
         this.playing ? "一時停止" : "再生",

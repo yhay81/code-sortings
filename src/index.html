@@ -18,11 +18,6 @@
         <span class="brand-mark" aria-hidden="true">CS</span>
         <strong>CODE SORTINGS</strong>
       </a>
-      <div class="window-title">
-        <span>main.py</span>
-        <span aria-hidden="true">—</span>
-        <span>sorting lab</span>
-      </div>
       <div
         class="engine-status"
         id="engine-status"
@@ -39,7 +34,7 @@
       <section class="command-bar" aria-label="実行設定">
         <div class="command-group">
           <label class="command-field" for="example-select">
-            <span>サンプル</span>
+            <span>アルゴリズム</span>
             <select id="example-select">
               <option value="sort_examples/insertion_sort.py" selected>
                 Insertion Sort
@@ -57,15 +52,6 @@
               </option>
             </select>
           </label>
-          <button
-            class="tool-button"
-            id="example-load-button"
-            type="button"
-            title="選択した例でmain.pyを置き換える"
-          >
-            開く
-          </button>
-          <span class="command-divider" aria-hidden="true"></span>
           <label class="command-field" for="pattern-select">
             <span>入力パターン</span>
             <select id="pattern-select">
@@ -98,7 +84,6 @@
               <span class="language-icon" aria-hidden="true">PY</span>
               <h1 id="editor-title">main.py</h1>
             </div>
-            <span class="pane-meta">Python</span>
           </div>
           <div class="editor-body">
             <div id="editor-active-line" aria-hidden="true"></div>
@@ -112,9 +97,7 @@
             ></div>
           </div>
           <div class="pane-footer">
-            <span><code>def sort(array)</code></span>
             <span id="editor-source-position">実行待ち</span>
-            <span>Spaces: 4</span>
           </div>
         </section>
 
@@ -130,7 +113,6 @@
                 ><small>フレーム</small
                 ><strong id="frame-position">0 / 0</strong></span
               >
-              <span id="indices">実行待ち</span>
             </div>
           </div>
 
@@ -191,8 +173,12 @@
                 <span>進む</span>
               </button>
               <label class="speed-field" for="speed">
-                <span>FPS</span>
-                <input id="speed" type="number" value="10" min="1" max="120" />
+                <span>速さ</span>
+                <select id="speed">
+                  <option value="5">ゆっくり</option>
+                  <option value="10" selected>ふつう</option>
+                  <option value="30">はやい</option>
+                </select>
               </label>
             </div>
           </div>
@@ -249,30 +235,7 @@
             平均的な動きを眺めるのに向いた、順序に偏りのない入力です。
           </p>
         </section>
-
-        <section class="inspector-section">
-          <span class="inspector-label">色の意味</span>
-          <div class="legend" aria-label="棒グラフの色">
-            <span><i class="legend-read"></i>読む</span>
-            <span><i class="legend-compare"></i>比べる</span>
-            <span><i class="legend-write"></i>書く</span>
-            <span><i class="legend-sorted"></i>整列済み</span>
-            <span><i class="legend-default"></i>待機</span>
-          </div>
-        </section>
       </aside>
-
-      <footer class="statusbar">
-        <div>
-          <span class="statusbar-item">追跡: 読む / 比べる / 書く</span>
-          <span class="statusbar-item">配列: 3–300個</span>
-        </div>
-        <div>
-          <span class="shortcut"><kbd>⌘↵</kbd> 実行</span>
-          <span class="shortcut"><kbd>Space</kbd> 再生/停止</span>
-          <a href="https://github.com/yhay81/code-sortings">GitHub ↗</a>
-        </div>
-      </footer>
     </main>
   </body>
 </html>

@@ -120,7 +120,8 @@ window.addEventListener("load", () => {
   let busy = true;
 
   const countInput = document.querySelector<HTMLInputElement>("#length")!;
-  const speedInputElement = document.querySelector<HTMLInputElement>("#speed")!;
+  const speedInputElement =
+    document.querySelector<HTMLSelectElement>("#speed")!;
   const statusElement = document.querySelector<HTMLDivElement>("#error-log")!;
   const engineStatusElement =
     document.querySelector<HTMLDivElement>("#engine-status")!;
@@ -142,9 +143,6 @@ window.addEventListener("load", () => {
     document.querySelector<HTMLButtonElement>("#generate-button")!;
   const exampleSelect =
     document.querySelector<HTMLSelectElement>("#example-select")!;
-  const exampleLoadButton = document.querySelector<HTMLButtonElement>(
-    "#example-load-button",
-  )!;
 
   const updateLineNumbers = (code: string): void => {
     const lines = code.split("\n").length;
@@ -190,16 +188,12 @@ window.addEventListener("load", () => {
     patternHintElement.textContent =
       PATTERN_HINTS[selectedPattern] ?? PATTERN_HINTS.random;
   };
-  const updateExampleButtonState = (): void => {
-    exampleLoadButton.disabled = busy;
-  };
   const setBusy = (nextBusy: boolean): void => {
     busy = nextBusy;
     generateButton.disabled = busy;
     countInput.disabled = busy;
     exampleSelect.disabled = busy;
     patternSelect.disabled = busy;
-    updateExampleButtonState();
   };
   const clearVisualization = (): void => {
     projector.stopPlay();
@@ -207,7 +201,6 @@ window.addEventListener("load", () => {
     document.querySelector("#log svg")?.remove();
     document.querySelector("#steps")!.textContent = "0";
     document.querySelector("#frame-position")!.textContent = "0 / 0";
-    document.querySelector("#indices")!.textContent = "実行待ち";
     document.querySelector("#editor-source-position")!.textContent = "実行待ち";
     document.querySelector("#timeline-position")!.textContent = "0 / 0";
     timelineRange.max = "0";
@@ -298,17 +291,14 @@ window.addEventListener("load", () => {
     } finally {
       if (generation === executionGeneration) {
         setBusy(false);
-        setEngineStatus(
-          runner.pythonVersion
-            ? `Python ${runner.pythonVersion} 準備完了`
-            : "Python 準備完了",
-        );
+        setEngineStatus("Python 準備完了");
       }
     }
   };
 
   const loadExample = async (): Promise<void> => {
     if (!exampleSelect.value) return;
+    setBusy(true);
     try {
       const response = await fetch(exampleSelect.value, { cache: "no-store" });
       if (!response.ok) {
@@ -324,14 +314,13 @@ window.addEventListener("load", () => {
       const message = error instanceof Error ? error.message : String(error);
       setStatus(message, "error");
       console.error(error);
+      setBusy(false);
     }
   };
 
-  exampleSelect.addEventListener("change", updateExampleButtonState);
-  exampleLoadButton.addEventListener("click", () => {
+  exampleSelect.addEventListener("change", () => {
     void loadExample();
   });
-  updateExampleButtonState();
   updateLesson(exampleSelect.value);
   patternSelect.addEventListener("change", updatePatternHint);
   updatePatternHint();
@@ -400,7 +389,7 @@ window.addEventListener("load", () => {
   void runner
     .warm()
     .then(() => {
-      setEngineStatus(`Python ${runner.pythonVersion} 準備完了`);
+      setEngineStatus("Python 準備完了");
       return executeSort();
     })
     .catch((error: unknown) => {
