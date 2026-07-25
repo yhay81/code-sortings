@@ -8,11 +8,7 @@ const globals = require("globals");
 
 module.exports = [
   {
-    ignores: [
-      "dist/**",
-      "node_modules/**",
-      "dev-server.js",
-    ],
+    ignores: ["dist/**", "node_modules/**"],
   },
   {
     files: ["**/*.ts"],
@@ -27,6 +23,7 @@ module.exports = [
         ...globals.es2015,
         ...globals.node,
         ...globals.browser,
+        Bun: "readonly",
       },
     },
     plugins: {
@@ -40,6 +37,20 @@ module.exports = [
       ...jsxA11yPlugin.configs.strict.rules,
       ...eslintConfigPrettier.rules,
       "@typescript-eslint/no-non-null-assertion": "off",
+    },
+  },
+  {
+    files: ["**/*.{js,mjs}"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
     },
   },
 ];

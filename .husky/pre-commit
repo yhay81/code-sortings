@@ -1,3 +1,2 @@
 #!/bin/sh
-bun run lint
-bun run fmt
+bunx lint-staged

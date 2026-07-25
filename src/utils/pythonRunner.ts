@@ -30,10 +30,65 @@ interface ActiveRun {
   timer: number;
 }
 
-export class PythonRunner {
-  private worker: Worker | null = null;
+interface RunnerWorkerHandle {
+  postMessage(message: unknown, transfer: Transferable[]): void;
+  terminate(): void;
+}
 
-  private port: MessagePort | null = null;
+interface RunnerConnection {
+  close(): void;
+  postMessage(message: unknown): void;
+}
+
+export interface PythonRunnerEnvironment {
+  clearTimeout(timer: number): void;
+  connect(
+    worker: RunnerWorkerHandle,
+    onMessage: (data: unknown) => void,
+  ): RunnerConnection;
+  createWorker(): RunnerWorkerHandle;
+  setTimeout(handler: () => void, timeoutMs: number): number;
+}
+
+interface PythonRunnerOptions {
+  bootTimeoutMs?: number;
+  environment?: PythonRunnerEnvironment;
+}
+
+const createBrowserEnvironment = (): PythonRunnerEnvironment => ({
+  clearTimeout: (timer) => window.clearTimeout(timer),
+  connect: (worker, onMessage) => {
+    const channel = new MessageChannel();
+    channel.port1.addEventListener(
+      "message",
+      (event: MessageEvent<unknown>) => {
+        onMessage(event.data);
+      },
+    );
+    channel.port1.start();
+    worker.postMessage({ type: "connect", port: channel.port2 }, [
+      channel.port2,
+    ]);
+    return {
+      close: () => channel.port1.close(),
+      postMessage: (message) => channel.port1.postMessage(message),
+    };
+  },
+  createWorker: () =>
+    new Worker("runner.worker.mjs", {
+      type: "module",
+    }),
+  setTimeout: (handler, timeoutMs) => window.setTimeout(handler, timeoutMs),
+});
+
+export class PythonRunner {
+  private readonly environment: PythonRunnerEnvironment;
+
+  private readonly bootTimeoutMs: number;
+
+  private worker: RunnerWorkerHandle | null = null;
+
+  private connection: RunnerConnection | null = null;
 
   private readyPromise: Promise<void> | null = null;
 
@@ -48,6 +103,11 @@ export class PythonRunner {
   private nextRunId = 1;
 
   public pythonVersion = "";
+
+  public constructor(options: PythonRunnerOptions = {}) {
+    this.environment = options.environment ?? createBrowserEnvironment();
+    this.bootTimeoutMs = options.bootTimeoutMs ?? 30_000;
+  }
 
   public warm(): Promise<void> {
     return this.ensureReady();
@@ -70,7 +130,7 @@ export class PythonRunner {
     const maxSteps = options.maxSteps ?? 200_000;
     const maxFrames = options.maxFrames ?? 5_000;
     return new Promise<PythonRunResult>((resolve, reject) => {
-      const timer = window.setTimeout(() => {
+      const timer = this.environment.setTimeout(() => {
         if (this.activeRun?.id !== id) return;
         this.activeRun = null;
         this.disposeWorker();
@@ -83,7 +143,7 @@ export class PythonRunner {
         );
       }, timeoutMs);
       this.activeRun = { id, resolve, reject, timer };
-      this.port?.postMessage({
+      this.connection?.postMessage({
         type: "run",
         id,
         source,
@@ -98,7 +158,7 @@ export class PythonRunner {
     if (!this.activeRun) return;
     const active = this.activeRun;
     this.activeRun = null;
-    window.clearTimeout(active.timer);
+    this.environment.clearTimeout(active.timer);
     this.disposeWorker();
     active.reject(new Error(message));
   }
@@ -111,23 +171,17 @@ export class PythonRunner {
   private ensureReady(): Promise<void> {
     if (this.readyPromise) return this.readyPromise;
 
-    this.worker = new Worker("runner.worker.mjs", { type: "module" });
-    const channel = new MessageChannel();
-    this.port = channel.port1;
-    this.port.addEventListener("message", (event: MessageEvent<unknown>) => {
-      this.handleMessage(event.data);
+    this.worker = this.environment.createWorker();
+    this.connection = this.environment.connect(this.worker, (data) => {
+      this.handleMessage(data);
     });
-    this.port.start();
-    this.worker.postMessage({ type: "connect", port: channel.port2 }, [
-      channel.port2,
-    ]);
 
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
       this.rejectReady = reject;
-      this.bootTimer = window.setTimeout(() => {
+      this.bootTimer = this.environment.setTimeout(() => {
         this.rejectBoot(new Error(t("runner.bootTimeout")));
-      }, 30_000);
+      }, this.bootTimeoutMs);
     });
     return this.readyPromise;
   }
@@ -135,7 +189,9 @@ export class PythonRunner {
   private handleMessage(data: unknown): void {
     if (!isRunnerMessage(data)) return;
     if (data.type === "ready") {
-      if (this.bootTimer !== null) window.clearTimeout(this.bootTimer);
+      if (this.bootTimer !== null) {
+        this.environment.clearTimeout(this.bootTimer);
+      }
       this.bootTimer = null;
       this.pythonVersion = data.pythonVersion;
       this.resolveReady?.();
@@ -152,12 +208,14 @@ export class PythonRunner {
     if (!result) return;
     const active = this.activeRun;
     this.activeRun = null;
-    window.clearTimeout(active.timer);
+    this.environment.clearTimeout(active.timer);
     active.resolve(result);
   }
 
   private rejectBoot(error: Error): void {
-    if (this.bootTimer !== null) window.clearTimeout(this.bootTimer);
+    if (this.bootTimer !== null) {
+      this.environment.clearTimeout(this.bootTimer);
+    }
     this.bootTimer = null;
     this.rejectReady?.(error);
     this.resolveReady = null;
@@ -166,11 +224,13 @@ export class PythonRunner {
   }
 
   private disposeWorker(): void {
-    if (this.bootTimer !== null) window.clearTimeout(this.bootTimer);
+    if (this.bootTimer !== null) {
+      this.environment.clearTimeout(this.bootTimer);
+    }
     this.bootTimer = null;
-    this.port?.close();
+    this.connection?.close();
     this.worker?.terminate();
-    this.port = null;
+    this.connection = null;
     this.worker = null;
     this.readyPromise = null;
     this.resolveReady = null;

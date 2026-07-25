@@ -7,23 +7,31 @@
   },
   "license": "MIT",
   "author": "Yusuke Hayashi <yusuke8h@gmail.com>",
-  "main": "dev-server.js",
+  "main": "dev-server.ts",
   "scripts": {
     "build": "bun run scripts/build.ts",
-    "dev": "rm -rf ./dist && mkdir -p ./dist/python && cp ./src/index.html ./dist/index.html && cp ./src/runner.worker.mjs ./dist/runner.worker.mjs && cp ./src/python/runner.py ./dist/python/runner.py && cp -R ./sort_examples ./dist/sort_examples && cp ./public/favicon.svg ./public/favicon.ico ./dist/ && bun build ./src/index.ts --outdir ./dist --watch --target=browser & bun run start",
-    "deploy": "bun run check && bun run build && wrangler deploy",
-    "deploy:dry-run": "bun run build && wrangler deploy --dry-run",
-    "fix": "rm -rf node_modules bun.lockb package-lock.json yarn.lock && bun run update && bunx sort-package-json && bun install && bun run fmt && bun run lint",
-    "check": "bun run typecheck && bun run lint:check && bun run fmt:check && bun run test",
-    "fmt": "prettier --write src",
-    "fmt:check": "prettier --check src tests/traceTimeline.test.ts",
-    "lint": "eslint --fix --ext .ts src",
-    "lint:check": "eslint --ext .ts src tests",
+    "budget": "bun run build && bun run scripts/check-bundle-budget.ts",
+    "dev": "bun run scripts/dev.ts",
+    "deploy": "bun run check && wrangler deploy",
+    "deploy:dry-run": "bun run budget && wrangler deploy --dry-run",
+    "fix": "bun run fmt && bun run lint",
+    "check": "bun run typecheck && bun run lint:check && bun run fmt:check && bun run test && bun run budget",
+    "fmt": "prettier --write src tests scripts package.json wrangler.jsonc eslint.config.js dev-server.ts",
+    "fmt:check": "prettier --check src tests scripts package.json wrangler.jsonc eslint.config.js dev-server.ts",
+    "lint": "eslint --fix src tests scripts dev-server.ts eslint.config.js",
+    "lint:check": "eslint src tests scripts dev-server.ts eslint.config.js",
     "test": "bun test && python3 -m unittest discover -s tests -p 'test_*.py'",
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "start": "nodemon dev-server.js",
+    "start": "bun run dev-server.ts",
     "update": "bunx npm-check-updates -u"
+  },
+  "lint-staged": {
+    "*.{css,html,json,jsonc}": "prettier --write",
+    "*.{js,mjs,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "codejar": "^4.3.0",
@@ -37,12 +45,10 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "express": "^5.2.1",
     "husky": "^9.1.7",
+    "linkedom": "^0.18.13",
     "lint-staged": "^16.2.7",
-    "nodemon": "^3.1.11",
     "prettier": "^3.7.4",
-    "serve-favicon": "^2.5.1",
     "typescript": "^5.9.3",
     "wrangler": "4.114.0"
   }
