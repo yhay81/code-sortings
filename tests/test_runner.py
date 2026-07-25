@@ -95,6 +95,18 @@ class PythonRunnerTest(unittest.TestCase):
         self.assertEqual(len(result["events"]), 5_000)
         self.assertTrue(result["sampled"])
 
+    def test_gnome_sort_supports_the_maximum_array_size(self) -> None:
+        result = run_sort(
+            (EXAMPLES / "gnome_sort.py").read_text(),
+            list(range(300, 0, -1)),
+        )
+
+        self.assertTrue(result["ok"])
+        self.assertTrue(result["isSorted"])
+        self.assertGreater(result["rawSteps"], 100_000)
+        self.assertLessEqual(len(result["events"]), 5_000)
+        self.assertTrue(result["sampled"])
+
     def test_syntax_errors_are_returned_to_the_ui(self) -> None:
         result = run_sort("def sort(array):\\n    if", [3, 2, 1])
 

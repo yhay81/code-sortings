@@ -494,7 +494,7 @@ def _compact_events(
 def run_sort(
     source: str,
     input_values: Iterable[int | float],
-    max_steps: int = 100_000,
+    max_steps: int = 200_000,
     max_frames: int = 5_000,
 ) -> dict[str, Any]:
     initial = [_finite_number(value) for value in input_values]
