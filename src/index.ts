@@ -41,10 +41,6 @@ window.addEventListener("load", () => {
   const speedInputElement =
     document.querySelector<HTMLSelectElement>("#speed")!;
   const statusElement = document.querySelector<HTMLDivElement>("#error-log")!;
-  const engineStatusElement =
-    document.querySelector<HTMLDivElement>("#engine-status")!;
-  const engineLabelElement =
-    document.querySelector<HTMLSpanElement>("#engine-label")!;
   const patternHintElement =
     document.querySelector<HTMLParagraphElement>("#pattern-hint")!;
   const timelineRange =
@@ -68,7 +64,6 @@ window.addEventListener("load", () => {
   type StatusState = "ok" | "error" | "working";
   type MessageRenderer = () => string;
   let statusRenderer: MessageRenderer = () => t("status.enginePreparing");
-  let engineRenderer: MessageRenderer = () => t("engine.preparing");
 
   const updateLineNumbers = (code: string): void => {
     const lines = code.split("\n").length;
@@ -91,14 +86,6 @@ window.addEventListener("load", () => {
     statusRenderer = renderer;
     statusElement.textContent = renderer();
     statusElement.dataset.state = state;
-  };
-  const setEngineStatus = (
-    renderer: MessageRenderer,
-    state: StatusState = "ok",
-  ): void => {
-    engineRenderer = renderer;
-    engineLabelElement.textContent = renderer();
-    engineStatusElement.dataset.state = state;
   };
   const updateLesson = (path: string): void => {
     const guide = getExampleGuide(path, getLocale());
@@ -174,7 +161,6 @@ window.addEventListener("load", () => {
     projector.stopPlay();
     setBusy(true);
     setStatus(() => t("status.executing"), "working");
-    setEngineStatus(() => t("engine.running"), "working");
 
     const pattern = patternSelect.value;
     const parsedCount = Number.parseInt(countInput.value || "20", 10);
@@ -231,7 +217,6 @@ window.addEventListener("load", () => {
     } finally {
       if (generation === executionGeneration) {
         setBusy(false);
-        setEngineStatus(() => t("engine.ready"));
       }
     }
   };
@@ -273,7 +258,6 @@ window.addEventListener("load", () => {
     updateLesson(exampleSelect.value);
     updatePatternHint();
     statusElement.textContent = statusRenderer();
-    engineLabelElement.textContent = engineRenderer();
     projector.show();
   });
 
@@ -337,17 +321,12 @@ window.addEventListener("load", () => {
   resizeObserver.observe(document.querySelector("#log")!);
 
   setStatus(() => t("status.enginePreparing"), "working");
-  setEngineStatus(() => t("engine.preparing"), "working");
   void runner
     .warm()
-    .then(() => {
-      setEngineStatus(() => t("engine.ready"));
-      return executeSort();
-    })
+    .then(() => executeSort())
     .catch((error: unknown) => {
       setBusy(false);
       const message = error instanceof Error ? error.message : String(error);
       setStatus(() => localizeRunnerError(message), "error");
-      setEngineStatus(() => t("engine.failed"), "error");
     });
 });
