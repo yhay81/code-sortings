@@ -71,9 +71,11 @@ class TraceRecorder:
         self,
         comparisons_by_line: dict[int, list[str]],
         max_steps: int,
+        max_frames: int,
     ) -> None:
         self.comparisons_by_line = comparisons_by_line
         self.max_steps = max_steps
+        self.max_frames = max_frames
         self.events: list[dict[str, Any]] = []
         self.operations: list[dict[str, Any]] = []
         self.notes: dict[str, str] = {}
@@ -81,6 +83,7 @@ class TraceRecorder:
         self.current_function = "<module>"
         self.branch: str | None = None
         self.comparisons = 0
+        self.raw_steps = 0
         self.enabled = False
         self.sorted_indices: set[int] = set()
 
@@ -188,7 +191,7 @@ class TraceRecorder:
         if not self.operations and not self.notes:
             self.branch = None
             return
-        if len(self.events) >= self.max_steps:
+        if self.raw_steps >= self.max_steps:
             raise TraceLimitExceeded(
                 f"可視化ステップ数が上限の {self.max_steps:,} を超えました"
             )
@@ -216,8 +219,12 @@ class TraceRecorder:
                 "comparisonCount": self.comparisons,
                 "branch": self.branch,
                 "notes": self.notes.copy(),
+                "_span": 1,
             }
         )
+        self.raw_steps += 1
+        if len(self.events) >= self.max_frames * 8:
+            self.events = _compact_event_buffer(self.events, self.max_frames)
         self.operations.clear()
         self.notes.clear()
         self.branch = None
@@ -427,68 +434,96 @@ def _remove_monitoring() -> None:
         monitoring.free_tool_id(TOOL_ID)
 
 
-def _compact_events(
+def _merge_event_chunk(
+    chunk: list[dict[str, Any]],
+) -> dict[str, Any]:
+    reads: OrderedDict[int, dict[str, Any]] = OrderedDict()
+    writes: OrderedDict[int, dict[str, Any]] = OrderedDict()
+    marks: OrderedDict[int, dict[str, Any]] = OrderedDict()
+    operators: list[str] = []
+    notes: dict[str, str] = {}
+    comparison = False
+    branch: str | None = None
+
+    for event in chunk:
+        comparison = comparison or event["comparison"]
+        for operator in event["operators"]:
+            if operator not in operators:
+                operators.append(operator)
+        notes.update(event["notes"])
+        if event["branch"] is not None:
+            branch = event["branch"]
+        for operation in event["operations"]:
+            index = operation["index"]
+            if operation["type"] == "read":
+                reads.setdefault(index, operation)
+            elif operation["type"] == "write":
+                existing = writes.get(index)
+                if existing is None:
+                    writes[index] = operation.copy()
+                else:
+                    existing["after"] = operation["after"]
+            elif operation["type"] == "mark":
+                existing = marks.get(index)
+                if existing is None:
+                    marks[index] = operation.copy()
+                else:
+                    existing["after"] = operation["after"]
+
+    final_event = chunk[-1]
+    return {
+        "line": final_event["line"],
+        "function": final_event["function"],
+        "operations": [
+            *reads.values(),
+            *writes.values(),
+            *marks.values(),
+        ],
+        "comparison": comparison,
+        "operators": operators,
+        "comparisonCount": final_event["comparisonCount"],
+        "branch": branch,
+        "notes": notes,
+        "_span": sum(event.get("_span", 1) for event in chunk),
+    }
+
+
+def _compact_event_buffer(
     events: list[dict[str, Any]],
     max_frames: int,
 ) -> list[dict[str, Any]]:
     if len(events) <= max_frames:
         return events
 
-    chunk_size = math.ceil(len(events) / max_frames)
+    total_span = sum(event.get("_span", 1) for event in events)
+    target_span = max(1, math.ceil(total_span / max_frames))
     compacted: list[dict[str, Any]] = []
-    for start in range(0, len(events), chunk_size):
-        chunk = events[start : start + chunk_size]
-        reads: OrderedDict[int, dict[str, Any]] = OrderedDict()
-        writes: OrderedDict[int, dict[str, Any]] = OrderedDict()
-        marks: OrderedDict[int, dict[str, Any]] = OrderedDict()
-        operators: list[str] = []
-        notes: dict[str, str] = {}
-        comparison = False
-        branch: str | None = None
+    chunk: list[dict[str, Any]] = []
+    chunk_span = 0
+    for event in events:
+        chunk.append(event)
+        chunk_span += event.get("_span", 1)
+        if chunk_span >= target_span:
+            compacted.append(_merge_event_chunk(chunk))
+            chunk = []
+            chunk_span = 0
+    if chunk:
+        compacted.append(_merge_event_chunk(chunk))
 
-        for event in chunk:
-            comparison = comparison or event["comparison"]
-            for operator in event["operators"]:
-                if operator not in operators:
-                    operators.append(operator)
-            notes.update(event["notes"])
-            if event["branch"] is not None:
-                branch = event["branch"]
-            for operation in event["operations"]:
-                index = operation["index"]
-                if operation["type"] == "read":
-                    reads.setdefault(index, operation)
-                elif operation["type"] == "write":
-                    existing = writes.get(index)
-                    if existing is None:
-                        writes[index] = operation.copy()
-                    else:
-                        existing["after"] = operation["after"]
-                elif operation["type"] == "mark":
-                    existing = marks.get(index)
-                    if existing is None:
-                        marks[index] = operation.copy()
-                    else:
-                        existing["after"] = operation["after"]
-
-        final_event = chunk[-1]
-        compacted.append(
-            {
-                "line": final_event["line"],
-                "function": final_event["function"],
-                "operations": [
-                    *reads.values(),
-                    *writes.values(),
-                    *marks.values(),
-                ],
-                "comparison": comparison,
-                "operators": operators,
-                "comparisonCount": final_event["comparisonCount"],
-                "branch": branch,
-                "notes": notes,
-            }
-        )
+    if len(compacted) > max_frames:
+        return _compact_event_buffer(compacted, max_frames)
     return compacted
+
+
+def _compact_events(
+    events: list[dict[str, Any]],
+    max_frames: int,
+) -> list[dict[str, Any]]:
+    compacted = _compact_event_buffer(events, max_frames)
+    return [
+        {key: value for key, value in event.items() if key != "_span"}
+        for event in compacted
+    ]
 
 
 def run_sort(
@@ -516,7 +551,11 @@ def run_sort(
             "traceback": traceback.format_exc(),
         }
 
-    recorder = TraceRecorder(comparisons_by_line, max_steps=max_steps)
+    recorder = TraceRecorder(
+        comparisons_by_line,
+        max_steps=max_steps,
+        max_frames=max_frames,
+    )
     tracked = SortArray(initial, recorder)
     namespace: dict[str, Any] = {
         "__builtins__": __builtins__,
@@ -550,8 +589,8 @@ def run_sort(
             "final": final,
             "events": compacted_events,
             "comparisons": recorder.comparisons,
-            "rawSteps": len(recorder.events),
-            "sampled": len(compacted_events) < len(recorder.events),
+            "rawSteps": recorder.raw_steps,
+            "sampled": len(compacted_events) < recorder.raw_steps,
             "isSorted": final == sorted(initial),
             "preservesValues": sorted(final) == sorted(initial),
         }
@@ -562,7 +601,7 @@ def run_sort(
             "errorType": type(error).__name__,
             "message": str(error),
             "traceback": traceback.format_exc(),
-            "events": recorder.events,
+            "events": _compact_events(recorder.events, max_frames),
         }
     finally:
         recorder.enabled = False

@@ -1,5 +1,6 @@
 import type { PythonRunResult } from "./traceTimeline";
 import { t } from "../i18n";
+import { decodePythonRunResult } from "./traceWire";
 
 interface RunnerReadyMessage {
   type: "ready";
@@ -9,7 +10,7 @@ interface RunnerReadyMessage {
 interface RunnerResultMessage {
   type: "result";
   id: number;
-  result: PythonRunResult;
+  result: unknown;
 }
 
 interface RunnerBootErrorMessage {
@@ -55,7 +56,11 @@ export class PythonRunner {
   public async run(
     source: string,
     input: number[],
-    options: { timeoutMs?: number; maxSteps?: number } = {},
+    options: {
+      timeoutMs?: number;
+      maxSteps?: number;
+      maxFrames?: number;
+    } = {},
   ): Promise<PythonRunResult> {
     this.cancel(t("runner.cancelled"));
     await this.ensureReady();
@@ -63,6 +68,7 @@ export class PythonRunner {
     const id = this.nextRunId++;
     const timeoutMs = options.timeoutMs ?? 15_000;
     const maxSteps = options.maxSteps ?? 200_000;
+    const maxFrames = options.maxFrames ?? 5_000;
     return new Promise<PythonRunResult>((resolve, reject) => {
       const timer = window.setTimeout(() => {
         if (this.activeRun?.id !== id) return;
@@ -83,6 +89,7 @@ export class PythonRunner {
         source,
         input,
         maxSteps,
+        maxFrames,
       });
     });
   }
@@ -141,10 +148,12 @@ export class PythonRunner {
       return;
     }
     if (this.activeRun?.id !== data.id) return;
+    const result = decodePythonRunResult(data.result);
+    if (!result) return;
     const active = this.activeRun;
     this.activeRun = null;
     window.clearTimeout(active.timer);
-    active.resolve(data.result);
+    active.resolve(result);
   }
 
   private rejectBoot(error: Error): void {
@@ -186,8 +195,7 @@ const isRunnerMessage = (data: unknown): data is RunnerMessage => {
     return (
       Number.isInteger(message.id) &&
       typeof message.result === "object" &&
-      message.result !== null &&
-      typeof message.result.ok === "boolean"
+      message.result !== null
     );
   }
   return false;

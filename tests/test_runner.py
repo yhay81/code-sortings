@@ -92,8 +92,14 @@ class PythonRunnerTest(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertTrue(result["isSorted"])
         self.assertEqual(result["rawSteps"], 90_000)
-        self.assertEqual(len(result["events"]), 5_000)
+        self.assertLessEqual(len(result["events"]), 5_000)
         self.assertTrue(result["sampled"])
+        replayed = list(result["initial"])
+        for event in result["events"]:
+            for operation in event["operations"]:
+                if operation["type"] == "write":
+                    replayed[operation["index"]] = operation["after"]
+        self.assertEqual(replayed, result["final"])
 
     def test_gnome_sort_supports_the_maximum_array_size(self) -> None:
         result = run_sort(
