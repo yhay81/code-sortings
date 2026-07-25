@@ -162,7 +162,7 @@ kbd {
 }
 
 .locale-field select {
-  width: 100px;
+  width: 122px;
   height: 34px;
   padding: 0 28px 0 10px;
   border: 1px solid var(--line);
@@ -867,7 +867,7 @@ kbd {
   }
 
   .locale-field select {
-    width: 78px;
+    width: 100px;
     height: 32px;
     padding-right: 23px;
     padding-left: 7px;
@@ -1014,6 +1014,12 @@ kbd {
   .complexity dl > div:nth-child(3) {
     padding-left: 0;
     border-left: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .engine-status {
+    display: none;
   }
 }
 

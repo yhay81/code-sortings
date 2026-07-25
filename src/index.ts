@@ -5,12 +5,12 @@ import { getExampleGuide } from "./guides";
 import {
   formatNumber,
   getLocale,
+  isLocale,
   localizeRunnerError,
   resolveInitialLocale,
   setLocale,
   t,
   translateDocument,
-  type Locale,
   type TranslationKey,
 } from "./i18n";
 import { createArray } from "./utils/initialArray";
@@ -265,8 +265,8 @@ window.addEventListener("load", () => {
   patternSelect.addEventListener("change", updatePatternHint);
   updatePatternHint();
   localeSelect.addEventListener("change", () => {
-    const nextLocale = localeSelect.value as Locale;
-    if (nextLocale !== "ja" && nextLocale !== "en") return;
+    const nextLocale = localeSelect.value;
+    if (!isLocale(nextLocale)) return;
     setLocale(nextLocale);
     translateDocument();
     editorElement.setAttribute("aria-label", t("editor.label"));
