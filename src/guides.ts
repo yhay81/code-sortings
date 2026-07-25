@@ -3,7 +3,7 @@ import type { Locale } from "./i18n";
 type LocalizedText = Record<Locale, string>;
 
 interface ExampleGuideSource {
-  title: string;
+  title: string | LocalizedText;
   summary: LocalizedText;
   focus: LocalizedText;
   best: string | LocalizedText;
@@ -20,7 +20,10 @@ export interface ExampleGuide {
   average: string;
   worst: string;
   trait: string;
+  referenceUrl: string | null;
 }
+
+export const CUSTOM_EXAMPLE_PATH = "custom";
 
 const localized = (
   ja: string,
@@ -137,7 +140,199 @@ const SHRINK_DEPENDENT = localized(
   "Abhängig vom Verkleinerungsfaktor",
 );
 
+const wikipediaUrl = (locale: Locale, title: string): string => {
+  const language =
+    locale === "zh-CN" ? "zh" : locale === "pt-BR" ? "pt" : locale;
+  return `https://${language}.wikipedia.org/wiki/${encodeURIComponent(
+    title.replaceAll(" ", "_"),
+  )}`;
+};
+
+const wikipedia = (
+  englishTitle: string,
+  translatedTitles: Partial<Record<Exclude<Locale, "en">, string>>,
+): LocalizedText => {
+  const englishUrl = wikipediaUrl("en", englishTitle);
+  const resolve = (locale: Exclude<Locale, "en">): string => {
+    const title = translatedTitles[locale];
+    return title ? wikipediaUrl(locale, title) : englishUrl;
+  };
+  return {
+    ja: resolve("ja"),
+    en: englishUrl,
+    "zh-CN": resolve("zh-CN"),
+    es: resolve("es"),
+    "pt-BR": resolve("pt-BR"),
+    ko: resolve("ko"),
+    fr: resolve("fr"),
+    de: resolve("de"),
+  };
+};
+
+const REFERENCE_URLS: Record<string, LocalizedText> = {
+  "sort_examples/insertion_sort.py": wikipedia("Insertion sort", {
+    ja: "挿入ソート",
+    "zh-CN": "插入排序",
+    es: "Ordenamiento por inserción",
+    "pt-BR": "Insertion sort",
+    ko: "삽입 정렬",
+    fr: "Tri par insertion",
+    de: "Insertionsort",
+  }),
+  "sort_examples/bubble_sort.py": wikipedia("Bubble sort", {
+    ja: "バブルソート",
+    "zh-CN": "冒泡排序",
+    es: "Ordenamiento de burbuja",
+    "pt-BR": "Bubble sort",
+    ko: "버블 정렬",
+    fr: "Tri à bulles",
+    de: "Bubblesort",
+  }),
+  "sort_examples/selection_sort.py": wikipedia("Selection sort", {
+    ja: "選択ソート",
+    "zh-CN": "选择排序",
+    es: "Ordenamiento por selección",
+    "pt-BR": "Selection sort",
+    ko: "선택 정렬",
+    fr: "Tri par sélection",
+    de: "Selectionsort",
+  }),
+  "sort_examples/cocktail_sort.py": wikipedia("Cocktail shaker sort", {
+    ja: "シェーカーソート",
+    "zh-CN": "鸡尾酒排序",
+    es: "Ordenamiento de burbuja bidireccional",
+    "pt-BR": "Cocktail sort",
+    ko: "칵테일 정렬",
+    fr: "Tri cocktail",
+    de: "Shakersort",
+  }),
+  "sort_examples/gnome_sort.py": wikipedia("Gnome sort", {
+    ja: "ノームソート",
+    "zh-CN": "侏儒排序",
+    es: "Gnome sort",
+    "pt-BR": "Gnome sort",
+    ko: "난쟁이 정렬",
+    de: "Gnomesort",
+  }),
+  "sort_examples/odd_even_sort.py": wikipedia("Odd–even sort", {
+    ja: "奇偶転置ソート",
+    "zh-CN": "奇偶排序",
+    es: "Ordenamiento impar-par",
+    "pt-BR": "Odd-even sort",
+    ko: "홀짝 정렬",
+    fr: "Tri pair-impair",
+  }),
+  "sort_examples/shell_sort.py": wikipedia("Shellsort", {
+    ja: "シェルソート",
+    "zh-CN": "希尔排序",
+    es: "Ordenamiento Shell",
+    "pt-BR": "Shell sort",
+    ko: "셸 정렬",
+    fr: "Tri de Shell",
+    de: "Shellsort",
+  }),
+  "sort_examples/comb_sort.py": wikipedia("Comb sort", {
+    ja: "コムソート",
+    "zh-CN": "梳排序",
+    es: "Comb sort",
+    "pt-BR": "Comb sort",
+    ko: "빗질 정렬",
+    fr: "Tri à peigne",
+    de: "Combsort",
+  }),
+  "sort_examples/merge_sort.py": wikipedia("Merge sort", {
+    ja: "マージソート",
+    "zh-CN": "归并排序",
+    es: "Ordenamiento por mezcla",
+    "pt-BR": "Merge sort",
+    ko: "합병 정렬",
+    fr: "Tri fusion",
+    de: "Mergesort",
+  }),
+  "sort_examples/quick_sort.py": wikipedia("Quicksort", {
+    ja: "クイックソート",
+    "zh-CN": "快速排序",
+    es: "Quicksort",
+    "pt-BR": "Quicksort",
+    ko: "퀵 정렬",
+    fr: "Tri rapide",
+    de: "Quicksort",
+  }),
+  "sort_examples/heap_sort.py": wikipedia("Heapsort", {
+    ja: "ヒープソート",
+    "zh-CN": "堆排序",
+    es: "Heapsort",
+    "pt-BR": "Heapsort",
+    ko: "힙 정렬",
+    fr: "Tri par tas",
+    de: "Heapsort",
+  }),
+  "sort_examples/counting_sort.py": wikipedia("Counting sort", {
+    "zh-CN": "计数排序",
+    es: "Ordenamiento por cuentas",
+    "pt-BR": "Counting sort",
+    ko: "계수 정렬",
+    fr: "Tri comptage",
+    de: "Countingsort",
+  }),
+  "sort_examples/radix_sort.py": wikipedia("Radix sort", {
+    ja: "基数ソート",
+    "zh-CN": "基数排序",
+    es: "Ordenamiento Radix",
+    "pt-BR": "Radix sort",
+    ko: "기수 정렬",
+    fr: "Tri par base",
+    de: "Radixsort",
+  }),
+  "sort_examples/cycle_sort.py": wikipedia("Cycle sort", {}),
+};
+
 const EXAMPLE_GUIDES: Record<string, ExampleGuideSource> = {
+  [CUSTOM_EXAMPLE_PATH]: {
+    title: localized(
+      "自分のソート",
+      "Your Sort",
+      "自定义排序",
+      "Tu ordenamiento",
+      "Sua ordenação",
+      "나만의 정렬",
+      "Votre tri",
+      "Eigener Sortieralgorithmus",
+    ),
+    summary: localized(
+      "最小限の関数から始めて、配列を昇順に並べる方法を自由に実装できます。",
+      "Start with a minimal function and sort the array in ascending order any way you choose.",
+      "从最小函数开始，用你选择的方法把数组按升序排列。",
+      "Empieza con una función mínima y ordena el arreglo de forma ascendente como prefieras.",
+      "Comece com uma função mínima e ordene o array em ordem crescente como preferir.",
+      "최소한의 함수에서 시작해 원하는 방법으로 배열을 오름차순 정렬할 수 있습니다.",
+      "Partez d’une fonction minimale et triez le tableau par ordre croissant comme vous le souhaitez.",
+      "Beginne mit einer minimalen Funktion und sortiere das Array auf deine eigene Weise aufsteigend.",
+    ),
+    focus: localized(
+      "比較・交換・代入を通常のPythonで書くだけで、配列の動きが自動的に可視化されます。",
+      "Write ordinary Python comparisons, swaps, and assignments; every array change is visualized automatically.",
+      "只需使用普通的 Python 编写比较、交换和赋值，数组的每个变化都会自动可视化。",
+      "Escribe comparaciones, intercambios y asignaciones en Python normal; cada cambio del arreglo se visualiza automáticamente.",
+      "Escreva comparações, trocas e atribuições em Python comum; cada mudança no array é visualizada automaticamente.",
+      "일반 Python으로 비교, 교환, 대입을 작성하면 배열의 모든 변화가 자동으로 시각화됩니다.",
+      "Écrivez des comparaisons, échanges et affectations en Python ordinaire : chaque modification du tableau est visualisée automatiquement.",
+      "Schreibe Vergleiche, Tauschvorgänge und Zuweisungen in normalem Python; jede Änderung am Array wird automatisch visualisiert.",
+    ),
+    best: "—",
+    average: "—",
+    worst: "—",
+    trait: localized(
+      "実装次第",
+      "Up to your implementation",
+      "取决于你的实现",
+      "Depende de tu implementación",
+      "Depende da sua implementação",
+      "구현에 따라 다름",
+      "Selon votre implémentation",
+      "Abhängig von deiner Implementierung",
+    ),
+  },
   "sort_examples/insertion_sort.py": {
     title: "Insertion Sort",
     summary: localized(
@@ -522,15 +717,18 @@ const resolveText = (value: string | LocalizedText, locale: Locale): string =>
   typeof value === "string" ? value : value[locale];
 
 export const getExampleGuide = (path: string, locale: Locale): ExampleGuide => {
-  const source =
-    EXAMPLE_GUIDES[path] ?? EXAMPLE_GUIDES["sort_examples/insertion_sort.py"];
+  const resolvedPath = EXAMPLE_GUIDES[path]
+    ? path
+    : "sort_examples/insertion_sort.py";
+  const source = EXAMPLE_GUIDES[resolvedPath];
   return {
-    title: source.title,
+    title: resolveText(source.title, locale),
     summary: source.summary[locale],
     focus: source.focus[locale],
     best: resolveText(source.best, locale),
     average: resolveText(source.average, locale),
     worst: resolveText(source.worst, locale),
     trait: source.trait[locale],
+    referenceUrl: REFERENCE_URLS[resolvedPath]?.[locale] ?? null,
   };
 };

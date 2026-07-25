@@ -18,6 +18,7 @@ const japanese = {
   "locale.label": "表示言語",
   "settings.label": "実行設定",
   "field.algorithm": "アルゴリズム",
+  "algorithm.custom": "自分で実装",
   "field.pattern": "入力パターン",
   "field.length": "要素数",
   "pattern.random": "ランダム",
@@ -33,6 +34,7 @@ const japanese = {
   "patternHint.fewUnique":
     "同じ値をどう扱うか見えます。比較条件と安定性を考えるきっかけになります。",
   "action.run": "実行",
+  "action.newSort": "0から書く",
   "editor.label": "Pythonソートコード",
   "source.waiting": "実行待ち",
   "source.before": "実行前",
@@ -65,6 +67,8 @@ const japanese = {
     "実行は完了しましたが、配列は昇順になっていません（Python {version}）",
   "status.sampled": " · {steps}操作から間引き",
   "status.complete": "実行完了 · {frames}フレーム{sampling} · Python {version}",
+  "status.customReady":
+    "最小限のコードを開きました。自分のソートを書いて実行してください",
   "error.loadExample": "例コードの読み込みに失敗しました",
   "error.visualizationTitle": "コードを実行できませんでした",
   "error.visualizationDetail":
@@ -76,6 +80,8 @@ const japanese = {
   "lesson.worst": "最悪",
   "lesson.trait": "特徴",
   "lesson.focus": "見るポイント",
+  "lesson.learnMore": "Wikipediaで詳しく学ぶ",
+  "lesson.learnMoreAria": "Wikipediaで{algorithm}を詳しく学ぶ（新しいタブ）",
   "operation.mark.kind": "位置を確定",
   "operation.mark.title": "{indices}{suffix} を整列済みにしました",
   "operation.mark.more": "ほか{count}件",
@@ -123,6 +129,7 @@ const english: Record<TranslationKey, string> = {
   "locale.label": "Display language",
   "settings.label": "Run settings",
   "field.algorithm": "Algorithm",
+  "algorithm.custom": "Your own sort",
   "field.pattern": "Input pattern",
   "field.length": "Items",
   "pattern.random": "Random",
@@ -138,6 +145,7 @@ const english: Record<TranslationKey, string> = {
   "patternHint.fewUnique":
     "Shows how equal values are handled and invites questions about comparisons and stability.",
   "action.run": "Run",
+  "action.newSort": "Start from scratch",
   "editor.label": "Python sorting code",
   "source.waiting": "Waiting to run",
   "source.before": "Before run",
@@ -170,6 +178,8 @@ const english: Record<TranslationKey, string> = {
     "Run complete, but the array is not in ascending order (Python {version})",
   "status.sampled": " · sampled from {steps} operations",
   "status.complete": "Complete · {frames} frames{sampling} · Python {version}",
+  "status.customReady":
+    "A minimal starter is ready. Write your own sort, then run it",
   "error.loadExample": "Could not load the example code",
   "error.visualizationTitle": "The code could not be run",
   "error.visualizationDetail":
@@ -181,6 +191,9 @@ const english: Record<TranslationKey, string> = {
   "lesson.worst": "Worst",
   "lesson.trait": "Traits",
   "lesson.focus": "What to watch",
+  "lesson.learnMore": "Learn more on Wikipedia",
+  "lesson.learnMoreAria":
+    "Learn more about {algorithm} on Wikipedia (opens in a new tab)",
   "operation.mark.kind": "Position settled",
   "operation.mark.title": "Marked {indices}{suffix} as sorted",
   "operation.mark.more": " and {count} more",
@@ -225,6 +238,7 @@ const chineseSimplified: Record<TranslationKey, string> = {
   "locale.label": "显示语言",
   "settings.label": "运行设置",
   "field.algorithm": "算法",
+  "algorithm.custom": "自己实现",
   "field.pattern": "输入模式",
   "field.length": "元素数",
   "pattern.random": "随机",
@@ -238,6 +252,7 @@ const chineseSimplified: Record<TranslationKey, string> = {
     "许多简单算法会在这里产生更多交换，适合探索最坏情况。",
   "patternHint.fewUnique": "可以观察相同值的处理方式，并思考比较条件与稳定性。",
   "action.run": "运行",
+  "action.newSort": "从零编写",
   "editor.label": "Python 排序代码",
   "source.waiting": "等待运行",
   "source.before": "运行前",
@@ -268,6 +283,7 @@ const chineseSimplified: Record<TranslationKey, string> = {
   "status.notSorted": "运行完成，但数组未按升序排列（Python {version}）",
   "status.sampled": " · 从 {steps} 次操作中采样",
   "status.complete": "完成 · {frames} 帧{sampling} · Python {version}",
+  "status.customReady": "最小代码已就绪。请编写自己的排序并运行",
   "error.loadExample": "无法加载示例代码",
   "error.visualizationTitle": "无法运行代码",
   "error.visualizationDetail": "请检查错误信息，修改代码后重试。",
@@ -278,6 +294,8 @@ const chineseSimplified: Record<TranslationKey, string> = {
   "lesson.worst": "最坏",
   "lesson.trait": "特性",
   "lesson.focus": "观察重点",
+  "lesson.learnMore": "在维基百科深入了解",
+  "lesson.learnMoreAria": "在维基百科深入了解 {algorithm}（在新标签页中打开）",
   "operation.mark.kind": "确定位置",
   "operation.mark.title": "已将 {indices}{suffix} 标记为有序",
   "operation.mark.more": "及其他 {count} 项",
@@ -321,6 +339,7 @@ const spanish: Record<TranslationKey, string> = {
   "locale.label": "Idioma de la interfaz",
   "settings.label": "Ajustes de ejecución",
   "field.algorithm": "Algoritmo",
+  "algorithm.custom": "Tu propio ordenamiento",
   "field.pattern": "Patrón de entrada",
   "field.length": "Elementos",
   "pattern.random": "Aleatorio",
@@ -336,6 +355,7 @@ const spanish: Record<TranslationKey, string> = {
   "patternHint.fewUnique":
     "Muestra cómo se tratan los valores iguales y ayuda a pensar en comparaciones y estabilidad.",
   "action.run": "Ejecutar",
+  "action.newSort": "Empezar de cero",
   "editor.label": "Código Python de ordenación",
   "source.waiting": "Esperando ejecución",
   "source.before": "Antes de ejecutar",
@@ -369,6 +389,8 @@ const spanish: Record<TranslationKey, string> = {
   "status.sampled": " · muestra de {steps} operaciones",
   "status.complete":
     "Completado · {frames} fotogramas{sampling} · Python {version}",
+  "status.customReady":
+    "El código inicial está listo. Escribe tu algoritmo y ejecútalo",
   "error.loadExample": "No se pudo cargar el código de ejemplo",
   "error.visualizationTitle": "No se pudo ejecutar el código",
   "error.visualizationDetail":
@@ -380,6 +402,9 @@ const spanish: Record<TranslationKey, string> = {
   "lesson.worst": "Peor",
   "lesson.trait": "Características",
   "lesson.focus": "Qué observar",
+  "lesson.learnMore": "Más información en Wikipedia",
+  "lesson.learnMoreAria":
+    "Más información sobre {algorithm} en Wikipedia (se abre en una pestaña nueva)",
   "operation.mark.kind": "Posición resuelta",
   "operation.mark.title": "{indices}{suffix} quedó marcado como ordenado",
   "operation.mark.more": " y {count} más",
@@ -428,6 +453,7 @@ const portugueseBrazil: Record<TranslationKey, string> = {
   "locale.label": "Idioma da interface",
   "settings.label": "Configurações de execução",
   "field.algorithm": "Algoritmo",
+  "algorithm.custom": "Sua própria ordenação",
   "field.pattern": "Padrão de entrada",
   "field.length": "Itens",
   "pattern.random": "Aleatório",
@@ -443,6 +469,7 @@ const portugueseBrazil: Record<TranslationKey, string> = {
   "patternHint.fewUnique":
     "Mostra como valores iguais são tratados e ajuda a pensar em comparações e estabilidade.",
   "action.run": "Executar",
+  "action.newSort": "Começar do zero",
   "editor.label": "Código Python de ordenação",
   "source.waiting": "Aguardando execução",
   "source.before": "Antes de executar",
@@ -476,6 +503,8 @@ const portugueseBrazil: Record<TranslationKey, string> = {
   "status.sampled": " · amostra de {steps} operações",
   "status.complete":
     "Concluído · {frames} quadros{sampling} · Python {version}",
+  "status.customReady":
+    "O código inicial está pronto. Escreva sua ordenação e execute",
   "error.loadExample": "Não foi possível carregar o código de exemplo",
   "error.visualizationTitle": "Não foi possível executar o código",
   "error.visualizationDetail":
@@ -487,6 +516,9 @@ const portugueseBrazil: Record<TranslationKey, string> = {
   "lesson.worst": "Pior",
   "lesson.trait": "Características",
   "lesson.focus": "O que observar",
+  "lesson.learnMore": "Saiba mais na Wikipédia",
+  "lesson.learnMoreAria":
+    "Saiba mais sobre {algorithm} na Wikipédia (abre em uma nova aba)",
   "operation.mark.kind": "Posição definida",
   "operation.mark.title": "{indices}{suffix} marcado como ordenado",
   "operation.mark.more": " e mais {count}",
@@ -535,6 +567,7 @@ const korean: Record<TranslationKey, string> = {
   "locale.label": "표시 언어",
   "settings.label": "실행 설정",
   "field.algorithm": "알고리즘",
+  "algorithm.custom": "직접 구현",
   "field.pattern": "입력 패턴",
   "field.length": "요소 수",
   "pattern.random": "무작위",
@@ -550,6 +583,7 @@ const korean: Record<TranslationKey, string> = {
   "patternHint.fewUnique":
     "같은 값을 처리하는 방법을 보여 주며 비교 조건과 안정성을 생각하게 합니다.",
   "action.run": "실행",
+  "action.newSort": "처음부터 작성",
   "editor.label": "Python 정렬 코드",
   "source.waiting": "실행 대기",
   "source.before": "실행 전",
@@ -582,6 +616,8 @@ const korean: Record<TranslationKey, string> = {
     "실행은 완료되었지만 배열이 오름차순이 아닙니다 (Python {version})",
   "status.sampled": " · {steps}개 작업에서 샘플링",
   "status.complete": "완료 · {frames}프레임{sampling} · Python {version}",
+  "status.customReady":
+    "최소 코드가 준비되었습니다. 나만의 정렬을 작성한 뒤 실행하세요",
   "error.loadExample": "예제 코드를 불러올 수 없습니다",
   "error.visualizationTitle": "코드를 실행할 수 없습니다",
   "error.visualizationDetail":
@@ -593,6 +629,9 @@ const korean: Record<TranslationKey, string> = {
   "lesson.worst": "최악",
   "lesson.trait": "특징",
   "lesson.focus": "관찰할 점",
+  "lesson.learnMore": "위키백과에서 자세히 보기",
+  "lesson.learnMoreAria":
+    "위키백과에서 {algorithm} 자세히 보기 (새 탭에서 열림)",
   "operation.mark.kind": "위치 확정",
   "operation.mark.title": "{indices}{suffix} 위치를 정렬 완료로 표시했습니다",
   "operation.mark.more": " 외 {count}개",
@@ -638,6 +677,7 @@ const french: Record<TranslationKey, string> = {
   "locale.label": "Langue de l’interface",
   "settings.label": "Paramètres d’exécution",
   "field.algorithm": "Algorithme",
+  "algorithm.custom": "Votre propre tri",
   "field.pattern": "Type d’entrée",
   "field.length": "Éléments",
   "pattern.random": "Aléatoire",
@@ -653,6 +693,7 @@ const french: Record<TranslationKey, string> = {
   "patternHint.fewUnique":
     "Montre le traitement des valeurs égales et invite à réfléchir aux comparaisons et à la stabilité.",
   "action.run": "Exécuter",
+  "action.newSort": "Partir de zéro",
   "editor.label": "Code Python de tri",
   "source.waiting": "En attente",
   "source.before": "Avant l’exécution",
@@ -685,6 +726,8 @@ const french: Record<TranslationKey, string> = {
     "L’exécution est terminée, mais le tableau n’est pas en ordre croissant (Python {version})",
   "status.sampled": " · échantillon de {steps} opérations",
   "status.complete": "Terminé · {frames} images{sampling} · Python {version}",
+  "status.customReady":
+    "Le code minimal est prêt. Écrivez votre tri, puis exécutez-le",
   "error.loadExample": "Impossible de charger le code d’exemple",
   "error.visualizationTitle": "Impossible d’exécuter le code",
   "error.visualizationDetail":
@@ -696,6 +739,9 @@ const french: Record<TranslationKey, string> = {
   "lesson.worst": "Pire",
   "lesson.trait": "Caractéristiques",
   "lesson.focus": "À observer",
+  "lesson.learnMore": "En savoir plus sur Wikipédia",
+  "lesson.learnMoreAria":
+    "En savoir plus sur {algorithm} sur Wikipédia (s’ouvre dans un nouvel onglet)",
   "operation.mark.kind": "Position fixée",
   "operation.mark.title": "Positions triées : {indices}{suffix}",
   "operation.mark.more": " et {count} autres",
@@ -747,6 +793,7 @@ const german: Record<TranslationKey, string> = {
   "locale.label": "Anzeigesprache",
   "settings.label": "Ausführungseinstellungen",
   "field.algorithm": "Algorithmus",
+  "algorithm.custom": "Eigener Sortieralgorithmus",
   "field.pattern": "Eingabemuster",
   "field.length": "Elemente",
   "pattern.random": "Zufällig",
@@ -762,6 +809,7 @@ const german: Record<TranslationKey, string> = {
   "patternHint.fewUnique":
     "Zeigt den Umgang mit gleichen Werten und regt zum Nachdenken über Vergleiche und Stabilität an.",
   "action.run": "Ausführen",
+  "action.newSort": "Neu beginnen",
   "editor.label": "Python-Sortiercode",
   "source.waiting": "Wartet auf Ausführung",
   "source.before": "Vor der Ausführung",
@@ -794,6 +842,8 @@ const german: Record<TranslationKey, string> = {
     "Die Ausführung ist beendet, aber das Array ist nicht aufsteigend sortiert (Python {version})",
   "status.sampled": " · Stichprobe aus {steps} Operationen",
   "status.complete": "Fertig · {frames} Frames{sampling} · Python {version}",
+  "status.customReady":
+    "Der minimale Code ist bereit. Schreibe deinen Sortieralgorithmus und führe ihn aus",
   "error.loadExample": "Der Beispielcode konnte nicht geladen werden",
   "error.visualizationTitle": "Der Code konnte nicht ausgeführt werden",
   "error.visualizationDetail":
@@ -805,6 +855,9 @@ const german: Record<TranslationKey, string> = {
   "lesson.worst": "Schlechtester",
   "lesson.trait": "Eigenschaften",
   "lesson.focus": "Darauf achten",
+  "lesson.learnMore": "Mehr auf Wikipedia",
+  "lesson.learnMoreAria":
+    "Mehr über {algorithm} auf Wikipedia erfahren (öffnet in einem neuen Tab)",
   "operation.mark.kind": "Position festgelegt",
   "operation.mark.title": "{indices}{suffix} als sortiert markiert",
   "operation.mark.more": " und {count} weitere",

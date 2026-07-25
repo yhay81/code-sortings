@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { getExampleGuide } from "../src/guides";
+import { CUSTOM_EXAMPLE_PATH, getExampleGuide } from "../src/guides";
 import {
   localizeRunnerError,
   normalizeLocale,
@@ -82,7 +82,34 @@ describe("internationalization", () => {
         expect(guide.average).not.toBe("");
         expect(guide.worst).not.toBe("");
         expect(guide.trait).not.toBe("");
+        expect(guide.referenceUrl).toMatch(
+          /^https:\/\/[a-z]+\.wikipedia\.org\/wiki\//,
+        );
       }
+    }
+  });
+
+  test("provides a distinct external reference for every example", () => {
+    const references = new Set(
+      EXAMPLES.map((path) => getExampleGuide(path, "ja").referenceUrl),
+    );
+
+    expect(references.size).toBe(EXAMPLES.length);
+    expect(
+      getExampleGuide("sort_examples/insertion_sort.py", "ja").referenceUrl,
+    ).toStartWith("https://ja.wikipedia.org/wiki/");
+    expect(
+      getExampleGuide("sort_examples/cycle_sort.py", "ja").referenceUrl,
+    ).toStartWith("https://en.wikipedia.org/wiki/");
+  });
+
+  test("explains the from-scratch mode in every language", () => {
+    for (const { code } of SUPPORTED_LOCALES) {
+      const guide = getExampleGuide(CUSTOM_EXAMPLE_PATH, code);
+      expect(guide.title).not.toBe("");
+      expect(guide.summary.length).toBeGreaterThan(10);
+      expect(guide.focus.length).toBeGreaterThan(10);
+      expect(guide.referenceUrl).toBeNull();
     }
   });
 });

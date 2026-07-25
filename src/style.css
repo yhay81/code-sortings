@@ -320,6 +320,37 @@ kbd {
   box-shadow: inset 0 2px 0 var(--accent);
 }
 
+.new-sort-button {
+  height: 32px;
+  margin-right: 8px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--accent);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.new-sort-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--line);
+  color: #a4ece1;
+  background: var(--panel-hover);
+}
+
+.new-sort-button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
 .file-tab h1,
 .file-tab h2 {
   margin: 0;
@@ -723,6 +754,38 @@ kbd {
   color: var(--text-soft);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.lesson-reference {
+  width: fit-content;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-bottom: 1px solid rgba(121, 216, 199, 0.45);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.lesson-reference span:last-child {
+  transition: transform 120ms ease;
+}
+
+.lesson-reference:hover {
+  border-bottom-color: var(--accent);
+  color: #a4ece1;
+}
+
+.lesson-reference:hover span:last-child,
+.lesson-reference:focus-visible span:last-child {
+  transform: translate(2px, -2px);
+}
+
+.lesson-reference[hidden] {
+  display: none;
 }
 
 #pattern-hint {

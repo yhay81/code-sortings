@@ -59,6 +59,9 @@
           <label class="command-field" for="example-select">
             <span data-i18n="field.algorithm">アルゴリズム</span>
             <select id="example-select">
+              <option value="custom" data-i18n="algorithm.custom">
+                自分で実装
+              </option>
               <option value="sort_examples/insertion_sort.py" selected>
                 Insertion Sort
               </option>
@@ -125,6 +128,15 @@
               <span class="language-icon" aria-hidden="true">PY</span>
               <h1 id="editor-title">main.py</h1>
             </div>
+            <button
+              id="new-sort-button"
+              class="new-sort-button"
+              type="button"
+              disabled
+            >
+              <span aria-hidden="true">＋</span>
+              <span data-i18n="action.newSort">0から書く</span>
+            </button>
           </div>
           <div class="editor-body">
             <div id="editor-active-line" aria-hidden="true"></div>
@@ -285,6 +297,16 @@
           <p id="lesson-summary">
             左側の整列済み部分へ、次の値を正しい位置まで差し込みます。
           </p>
+          <a
+            id="lesson-reference"
+            class="lesson-reference"
+            href="https://en.wikipedia.org/wiki/Insertion_sort"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span id="lesson-reference-label">Wikipediaで詳しく学ぶ</span>
+            <span aria-hidden="true">↗</span>
+          </a>
         </section>
 
         <section

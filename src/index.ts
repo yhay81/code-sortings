@@ -1,7 +1,7 @@
 import { CodeJar } from "codejar";
 import hljs from "highlight.js/lib/core";
 import python from "highlight.js/lib/languages/python";
-import { getExampleGuide } from "./guides";
+import { CUSTOM_EXAMPLE_PATH, getExampleGuide } from "./guides";
 import {
   formatNumber,
   getLocale,
@@ -27,6 +27,10 @@ const PATTERN_HINT_KEYS: Record<string, TranslationKey> = {
   reversed: "patternHint.reversed",
   "few-unique": "patternHint.fewUnique",
 };
+
+const CUSTOM_STARTER = `def sort(array):
+    pass
+`;
 
 window.addEventListener("load", () => {
   setLocale(resolveInitialLocale(), false);
@@ -57,6 +61,13 @@ window.addEventListener("load", () => {
     document.querySelector<HTMLButtonElement>("#generate-button")!;
   const exampleSelect =
     document.querySelector<HTMLSelectElement>("#example-select")!;
+  const newSortButton =
+    document.querySelector<HTMLButtonElement>("#new-sort-button")!;
+  const lessonReference =
+    document.querySelector<HTMLAnchorElement>("#lesson-reference")!;
+  const lessonReferenceLabel = document.querySelector<HTMLSpanElement>(
+    "#lesson-reference-label",
+  )!;
   const localeSelect =
     document.querySelector<HTMLSelectElement>("#locale-select")!;
   localeSelect.value = getLocale();
@@ -96,6 +107,19 @@ window.addEventListener("load", () => {
     document.querySelector("#complexity-average")!.textContent = guide.average;
     document.querySelector("#complexity-worst")!.textContent = guide.worst;
     document.querySelector("#lesson-trait")!.textContent = guide.trait;
+    lessonReferenceLabel.textContent = t("lesson.learnMore");
+    if (guide.referenceUrl) {
+      lessonReference.href = guide.referenceUrl;
+      lessonReference.setAttribute(
+        "aria-label",
+        t("lesson.learnMoreAria", { algorithm: guide.title }),
+      );
+      lessonReference.hidden = false;
+    } else {
+      lessonReference.removeAttribute("href");
+      lessonReference.removeAttribute("aria-label");
+      lessonReference.hidden = true;
+    }
   };
   const updatePatternHint = (): void => {
     const hintKey =
@@ -108,8 +132,12 @@ window.addEventListener("load", () => {
     countInput.disabled = busy;
     exampleSelect.disabled = busy;
     patternSelect.disabled = busy;
+    newSortButton.disabled = busy;
   };
-  const clearVisualization = (): void => {
+  const clearVisualization = (
+    title = t("error.visualizationTitle"),
+    detail = t("error.visualizationDetail"),
+  ): void => {
     projector.stopPlay();
     projector.timeline = null;
     document.querySelector("#log svg")?.remove();
@@ -124,12 +152,8 @@ window.addEventListener("load", () => {
     activeLineElement.hidden = true;
     document.querySelector("#operation-kind")!.textContent =
       t("source.waiting");
-    document.querySelector("#operation-explanation")!.textContent = t(
-      "error.visualizationTitle",
-    );
-    document.querySelector("#operation-detail")!.textContent = t(
-      "error.visualizationDetail",
-    );
+    document.querySelector("#operation-explanation")!.textContent = title;
+    document.querySelector("#operation-detail")!.textContent = detail;
     projector.show();
   };
 
@@ -221,8 +245,27 @@ window.addEventListener("load", () => {
     }
   };
 
+  const startCustomSort = (): void => {
+    ++executionGeneration;
+    const guide = getExampleGuide(CUSTOM_EXAMPLE_PATH, getLocale());
+    projector.stopPlay();
+    jar.updateCode(CUSTOM_STARTER);
+    updateLineNumbers(jar.toString());
+    editorElement.scrollTop = 0;
+    lineNumberElement.scrollTop = 0;
+    updateLesson(CUSTOM_EXAMPLE_PATH);
+    clearVisualization(guide.title, guide.focus);
+    setStatus(() => t("status.customReady"));
+    setBusy(false);
+    requestAnimationFrame(() => editorElement.focus());
+  };
+
   const loadExample = async (): Promise<void> => {
     if (!exampleSelect.value) return;
+    if (exampleSelect.value === CUSTOM_EXAMPLE_PATH) {
+      startCustomSort();
+      return;
+    }
     setBusy(true);
     try {
       const response = await fetch(exampleSelect.value, { cache: "no-store" });
@@ -245,6 +288,14 @@ window.addEventListener("load", () => {
 
   exampleSelect.addEventListener("change", () => {
     void loadExample();
+  });
+  newSortButton.addEventListener("click", () => {
+    if (exampleSelect.value === CUSTOM_EXAMPLE_PATH) {
+      editorElement.focus();
+      return;
+    }
+    exampleSelect.value = CUSTOM_EXAMPLE_PATH;
+    startCustomSort();
   });
   updateLesson(exampleSelect.value);
   patternSelect.addEventListener("change", updatePatternHint);
