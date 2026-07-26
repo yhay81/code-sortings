@@ -1,7 +1,30 @@
+import type { AppElements } from "../app/elements";
 import { formatNumber, t } from "../i18n";
 import { BarChartRenderer } from "./barChartRenderer";
 import { explainOperation } from "./operationExplanation";
 import type { TraceTimeline } from "./traceTimeline";
+
+type ProjectorElements = Pick<
+  AppElements,
+  | "activeLine"
+  | "backButton"
+  | "editor"
+  | "forwardButton"
+  | "framePosition"
+  | "lineNumbers"
+  | "log"
+  | "operationDetail"
+  | "operationKind"
+  | "operationTitle"
+  | "playIcon"
+  | "playLabel"
+  | "resetButton"
+  | "sourcePosition"
+  | "startButton"
+  | "steps"
+  | "timelinePosition"
+  | "timelineRange"
+>;
 
 const waitForFrame = async (delay: number): Promise<void> =>
   new Promise((resolve) => {
@@ -13,6 +36,10 @@ const waitForFrame = async (delay: number): Promise<void> =>
     requestAnimationFrame(tick);
   });
 
+const updateText = (element: Element, text: string): void => {
+  if (element.textContent !== text) element.textContent = text;
+};
+
 export class Projector {
   public timeline: TraceTimeline | null;
 
@@ -20,34 +47,36 @@ export class Projector {
 
   private playGeneration: number;
 
-  private readonly chart: BarChartRenderer | null;
+  private readonly chart: BarChartRenderer;
 
-  constructor() {
+  private editorLayoutDirty = true;
+
+  private editorLineHeight = 0;
+
+  private editorPaddingTop = 0;
+
+  private playbackStateKey = "";
+
+  constructor(private readonly elements: ProjectorElements) {
     this.timeline = null;
     this.playing = false;
     this.playGeneration = 0;
-    const logElement = document.querySelector<HTMLElement>("#log");
-    this.chart = logElement ? new BarChartRenderer(logElement) : null;
+    this.chart = new BarChartRenderer(elements.log);
   }
 
   show(): void {
     const timeline = this.timeline;
-    const stepsNode = document.querySelector("#steps");
-    const frameNode = document.querySelector("#frame-position");
-    const indicesElement = document.querySelector<HTMLSpanElement>("#indices");
-    const timelineRange =
-      document.querySelector<HTMLInputElement>("#timeline-range");
-    const timelinePosition = document.querySelector("#timeline-position");
-    const logElement = document.querySelector<HTMLDivElement>("#log");
-    if (
-      !timeline ||
-      !stepsNode ||
-      !frameNode ||
-      !timelineRange ||
-      !timelinePosition ||
-      !logElement
-    ) {
-      this.chart?.clear();
+    const {
+      framePosition,
+      operationDetail,
+      operationKind,
+      operationTitle,
+      steps,
+      timelinePosition,
+      timelineRange,
+    } = this.elements;
+    if (!timeline) {
+      this.chart.clear();
       this.updateEditorLine(0, "sort");
       this.updatePlaybackState();
       return;
@@ -57,30 +86,29 @@ export class Projector {
     const picture = timeline.picture;
     const { compares, line, functionName } = picture;
 
-    stepsNode.textContent = formatNumber(compares);
-    frameNode.textContent = `${formatNumber(timeline.position)} / ${formatNumber(totalFrames)}`;
-    timelinePosition.textContent = `${formatNumber(timeline.position)} / ${formatNumber(totalFrames)}`;
-    timelineRange.max = totalFrames.toString();
-    timelineRange.value = timeline.position.toString();
-    timelineRange.disabled = totalFrames === 0;
-    if (indicesElement) {
-      indicesElement.textContent =
-        line > 0
-          ? t("source.line", { function: functionName, line })
-          : t("source.before");
+    const formattedPosition = formatNumber(timeline.position);
+    const formattedTotal = formatNumber(totalFrames);
+    const positionText = `${formattedPosition} / ${formattedTotal}`;
+    updateText(steps, formatNumber(compares));
+    updateText(framePosition, positionText);
+    updateText(timelinePosition, positionText);
+    const rangeMax = totalFrames.toString();
+    const rangeValue = timeline.position.toString();
+    if (timelineRange.max !== rangeMax) timelineRange.max = rangeMax;
+    if (timelineRange.value !== rangeValue) timelineRange.value = rangeValue;
+    const rangeDisabled = totalFrames === 0;
+    if (timelineRange.disabled !== rangeDisabled) {
+      timelineRange.disabled = rangeDisabled;
     }
     this.updateEditorLine(line, functionName);
 
     const explanation = explainOperation(picture);
-    const operationKind = document.querySelector("#operation-kind");
-    const operationTitle = document.querySelector("#operation-explanation");
-    const operationDetail = document.querySelector("#operation-detail");
-    if (operationKind) operationKind.textContent = explanation.kind;
-    if (operationTitle) operationTitle.textContent = explanation.title;
-    if (operationDetail) operationDetail.textContent = explanation.detail;
+    updateText(operationKind, explanation.kind);
+    updateText(operationTitle, explanation.title);
+    updateText(operationDetail, explanation.detail);
 
     this.updatePlaybackState();
-    this.chart?.render(picture, timeline.position, compares);
+    this.chart.render(picture, timeline.position, compares);
   }
 
   async autoPlay(
@@ -129,7 +157,8 @@ export class Projector {
   }
 
   resize(): void {
-    this.chart?.invalidateLayout();
+    this.editorLayoutDirty = true;
+    this.chart.invalidateLayout();
     this.show();
   }
 
@@ -154,83 +183,90 @@ export class Projector {
 
   private updatePlaybackState(): void {
     const hasTimeline = this.timeline !== null && this.timeline.length > 1;
-    const startButton =
-      document.querySelector<HTMLButtonElement>("#start-button");
-    const playLabel = document.querySelector("#play-label");
-    const playIcon = document.querySelector("#play-icon");
-    const backButton =
-      document.querySelector<HTMLButtonElement>("#back-button");
-    const forwardButton =
-      document.querySelector<HTMLButtonElement>("#forward-button");
-    const resetButton =
-      document.querySelector<HTMLButtonElement>("#reset-button");
+    const isStart = Boolean(this.timeline?.isStart);
+    const isEnd = Boolean(this.timeline?.isEnd);
+    const playTitle = this.playing
+      ? t("transport.pauseTitle")
+      : t("transport.playTitle");
+    const playAriaLabel = this.playing
+      ? t("transport.pause")
+      : t("transport.play");
+    const playText = this.playing ? t("transport.stop") : t("transport.play");
+    const nextStateKey = [
+      hasTimeline,
+      this.playing,
+      isStart,
+      isEnd,
+      playTitle,
+      playAriaLabel,
+      playText,
+    ].join("|");
+    if (this.playbackStateKey === nextStateKey) return;
+    this.playbackStateKey = nextStateKey;
 
-    if (startButton) {
-      startButton.disabled = !hasTimeline;
-      startButton.title = this.playing
-        ? t("transport.pauseTitle")
-        : t("transport.playTitle");
-      startButton.setAttribute(
-        "aria-label",
-        this.playing ? t("transport.pause") : t("transport.play"),
-      );
-    }
-    if (playLabel) {
-      playLabel.textContent = this.playing
-        ? t("transport.stop")
-        : t("transport.play");
-    }
-    if (playIcon) playIcon.textContent = this.playing ? "Ⅱ" : "▶";
-    if (backButton) {
-      backButton.disabled =
-        !hasTimeline || this.playing || Boolean(this.timeline?.isStart);
-    }
-    if (forwardButton) {
-      forwardButton.disabled =
-        !hasTimeline || this.playing || Boolean(this.timeline?.isEnd);
-    }
-    if (resetButton) {
-      resetButton.disabled =
-        !hasTimeline || this.playing || Boolean(this.timeline?.isStart);
-    }
+    const {
+      backButton,
+      forwardButton,
+      playIcon,
+      playLabel,
+      resetButton,
+      startButton,
+    } = this.elements;
+    startButton.disabled = !hasTimeline;
+    startButton.title = playTitle;
+    startButton.setAttribute("aria-label", playAriaLabel);
+    updateText(playLabel, playText);
+    updateText(playIcon, this.playing ? "Ⅱ" : "▶");
+    backButton.disabled = !hasTimeline || this.playing || isStart;
+    forwardButton.disabled = !hasTimeline || this.playing || isEnd;
+    resetButton.disabled = !hasTimeline || this.playing || isStart;
   }
 
   private updateEditorLine(line: number, functionName: string): void {
-    const activeLine = document.querySelector<HTMLDivElement>(
-      "#editor-active-line",
-    );
-    const editor = document.querySelector<HTMLDivElement>("#editor-code");
-    const sourcePosition = document.querySelector("#editor-source-position");
-    if (!activeLine || !editor) return;
+    const { activeLine, editor, lineNumbers, sourcePosition } = this.elements;
 
     if (line <= 0) {
-      activeLine.hidden = true;
-      if (sourcePosition) sourcePosition.textContent = t("source.before");
+      if (!activeLine.hidden) activeLine.hidden = true;
+      updateText(sourcePosition, t("source.before"));
       return;
     }
 
-    activeLine.hidden = false;
-    const editorStyle = getComputedStyle(editor);
-    const lineHeight = Number.parseFloat(editorStyle.lineHeight);
-    const paddingTop = Number.parseFloat(editorStyle.paddingTop);
-    const lineTop = paddingTop + (line - 1) * lineHeight;
-    const lineBottom = lineTop + lineHeight;
-    if (
-      lineTop < editor.scrollTop ||
-      lineBottom > editor.scrollTop + editor.clientHeight
-    ) {
-      editor.scrollTop = Math.max(0, lineTop - editor.clientHeight / 2);
-      const lineNumbers =
-        document.querySelector<HTMLDivElement>("#editor-lines");
-      if (lineNumbers) lineNumbers.scrollTop = editor.scrollTop;
+    if (activeLine.hidden) activeLine.hidden = false;
+    if (this.editorLayoutDirty) {
+      const editorStyle = getComputedStyle(editor);
+      const lineHeight = Number.parseFloat(editorStyle.lineHeight);
+      const paddingTop = Number.parseFloat(editorStyle.paddingTop);
+      this.editorLineHeight =
+        Number.isFinite(lineHeight) && lineHeight > 0 ? lineHeight : 0;
+      this.editorPaddingTop = Number.isFinite(paddingTop) ? paddingTop : 0;
+      this.editorLayoutDirty = false;
     }
-    activeLine.style.setProperty("--line-index", (line - 1).toString());
-    activeLine.style.setProperty("--editor-scroll", `${editor.scrollTop}px`);
-    if (sourcePosition) {
-      sourcePosition.textContent = t("source.line", {
+
+    const lineTop = this.editorPaddingTop + (line - 1) * this.editorLineHeight;
+    const lineBottom = lineTop + this.editorLineHeight;
+    const scrollTop = editor.scrollTop;
+    const editorHeight = editor.clientHeight;
+    if (
+      this.editorLineHeight > 0 &&
+      (lineTop < scrollTop || lineBottom > scrollTop + editorHeight)
+    ) {
+      editor.scrollTop = Math.max(0, lineTop - editorHeight / 2);
+      lineNumbers.scrollTop = editor.scrollTop;
+    }
+    const lineIndex = (line - 1).toString();
+    const editorScroll = `${editor.scrollTop}px`;
+    if (activeLine.style.getPropertyValue("--line-index") !== lineIndex) {
+      activeLine.style.setProperty("--line-index", lineIndex);
+    }
+    if (activeLine.style.getPropertyValue("--editor-scroll") !== editorScroll) {
+      activeLine.style.setProperty("--editor-scroll", editorScroll);
+    }
+    updateText(
+      sourcePosition,
+      t("source.line", {
         function: functionName,
         line,
-      });
-    }
+      }),
+    );
   }
 }

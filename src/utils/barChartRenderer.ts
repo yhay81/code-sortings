@@ -39,11 +39,21 @@ export class BarChartRenderer {
 
   private labels: SVGTextElement[] = [];
 
+  private barValues: number[] = [];
+
+  private barRawValues: number[] = [];
+
+  private barFills: string[] = [];
+
   private layoutDirty = true;
 
   private width = 240;
 
   private height = 160;
+
+  private barWidth = 0;
+
+  private maxValue = 1;
 
   public constructor(root: HTMLElement) {
     this.root = root;
@@ -69,6 +79,12 @@ export class BarChartRenderer {
     this.labelsGroup = null;
     this.bars = [];
     this.labels = [];
+    this.barValues = [];
+    this.barRawValues = [];
+    this.barFills = [];
+    this.layoutDirty = true;
+    this.barWidth = 0;
+    this.maxValue = 1;
   }
 
   public invalidateLayout(): void {
@@ -86,66 +102,76 @@ export class BarChartRenderer {
     }
 
     this.ensureSvg();
-    this.measure();
-    this.ensureDataElements(picture.array.length);
+    const layoutChanged = this.measure();
+    const elementsChanged = this.ensureDataElements(picture.array.length);
+    if (layoutChanged || elementsChanged) {
+      this.updateStaticGeometry(picture.array.length);
+    }
 
     const svg = this.svg;
     const title = this.title;
     if (!svg || !title) return;
 
-    svg.setAttribute("width", this.width.toString());
-    svg.setAttribute("height", this.height.toString());
-    svg.setAttribute(
-      "aria-label",
-      t("chart.label", {
-        comparisons: formatNumber(comparisons),
-        frame: formatNumber(frame),
-      }),
-    );
-    title.textContent = t("chart.title", {
+    const ariaLabel = t("chart.label", {
+      comparisons: formatNumber(comparisons),
+      frame: formatNumber(frame),
+    });
+    if (svg.getAttribute("aria-label") !== ariaLabel) {
+      svg.setAttribute("aria-label", ariaLabel);
+    }
+    const titleText = t("chart.title", {
       values: picture.array.join(", "),
     });
+    if (title.textContent !== titleText) title.textContent = titleText;
 
-    const maxValue = picture.array.reduce(
+    const nextMaxValue = picture.array.reduce(
       (maximum, value) => Math.max(maximum, normalizeValue(value)),
       1,
     );
+    const scaleChanged =
+      layoutChanged || elementsChanged || nextMaxValue !== this.maxValue;
+    this.maxValue = nextMaxValue;
     const barCount = picture.array.length;
-    const barGap = this.width / barCount <= 1 ? 0 : 1;
-    const barWidth = this.width / barCount - barGap;
-    const barHeight = this.height / maxValue;
+    const barHeight = this.height / this.maxValue;
     const reads = new Set(picture.reads);
     const writes = new Set(picture.writes);
     const sorted = new Set(picture.sorted);
 
     for (let index = 0; index < barCount; index++) {
-      const value = normalizeValue(picture.array[index]);
+      const rawValue = picture.array[index];
+      const value = normalizeValue(rawValue);
       const bar = this.bars[index];
-      bar.setAttribute("x", (index * (barWidth + barGap)).toString());
-      bar.setAttribute("y", (this.height - value * barHeight).toString());
-      bar.setAttribute("width", barWidth.toString());
-      bar.setAttribute("height", (value * barHeight).toString());
-      bar.setAttribute("rx", Math.min(4, barWidth / 3).toString());
-      bar.setAttribute(
-        "fill",
-        this.colorFor(index, reads, writes, sorted, picture.comparison),
+      const valueChanged = this.barValues[index] !== value;
+      const rawValueChanged = this.barRawValues[index] !== rawValue;
+      if (scaleChanged || valueChanged) {
+        bar.setAttribute("y", (this.height - value * barHeight).toString());
+        bar.setAttribute("height", (value * barHeight).toString());
+        this.barValues[index] = value;
+      }
+      this.barRawValues[index] = rawValue;
+      const fill = this.colorFor(
+        index,
+        reads,
+        writes,
+        sorted,
+        picture.comparison,
       );
+      if (this.barFills[index] !== fill) {
+        bar.setAttribute("fill", fill);
+        this.barFills[index] = fill;
+      }
 
       const label = this.labels[index];
       if (!label) continue;
-      label.textContent = picture.array[index].toString();
-      label.setAttribute(
-        "x",
-        (index * (barWidth + barGap) + barWidth / 2).toString(),
-      );
-      label.setAttribute(
-        "y",
-        (this.height - value * barHeight + barWidth / 1.5).toString(),
-      );
-      label.setAttribute(
-        "font-size",
-        `${Math.max(10, barWidth / 2).toFixed(1)}px`,
-      );
+      if (rawValueChanged || label.textContent === "") {
+        label.textContent = rawValue.toString();
+      }
+      if (scaleChanged || valueChanged) {
+        label.setAttribute(
+          "y",
+          (this.height - value * barHeight + this.barWidth / 1.5).toString(),
+        );
+      }
     }
   }
 
@@ -178,9 +204,10 @@ export class BarChartRenderer {
     this.root.append(this.svg);
   }
 
-  private ensureDataElements(count: number): void {
-    if (!this.barsGroup || !this.labelsGroup) return;
+  private ensureDataElements(count: number): boolean {
+    if (!this.barsGroup || !this.labelsGroup) return false;
 
+    let changed = false;
     if (this.bars.length !== count) {
       this.bars = Array.from({ length: count }, () => {
         const bar = createSvgElement("rect");
@@ -188,6 +215,10 @@ export class BarChartRenderer {
         return bar;
       });
       this.barsGroup.replaceChildren(...this.bars);
+      this.barValues = Array.from({ length: count }, () => Number.NaN);
+      this.barRawValues = Array.from({ length: count }, () => Number.NaN);
+      this.barFills = Array.from({ length: count }, () => "");
+      changed = true;
     }
 
     const labelCount = count < LABEL_LIMIT ? count : 0;
@@ -204,11 +235,38 @@ export class BarChartRenderer {
         return label;
       });
       this.labelsGroup.replaceChildren(...this.labels);
+      changed = true;
+    }
+    return changed;
+  }
+
+  private updateStaticGeometry(count: number): void {
+    const svg = this.svg;
+    if (!svg || count === 0) return;
+
+    svg.setAttribute("width", this.width.toString());
+    svg.setAttribute("height", this.height.toString());
+    const barGap = this.width / count <= 1 ? 0 : 1;
+    this.barWidth = this.width / count - barGap;
+    const radius = Math.min(4, this.barWidth / 3).toString();
+    const width = this.barWidth.toString();
+    const fontSize = `${Math.max(10, this.barWidth / 2).toFixed(1)}px`;
+    for (let index = 0; index < count; index++) {
+      const x = index * (this.barWidth + barGap);
+      const bar = this.bars[index];
+      bar.setAttribute("x", x.toString());
+      bar.setAttribute("width", width);
+      bar.setAttribute("rx", radius);
+
+      const label = this.labels[index];
+      if (!label) continue;
+      label.setAttribute("x", (x + this.barWidth / 2).toString());
+      label.setAttribute("font-size", fontSize);
     }
   }
 
-  private measure(): void {
-    if (!this.layoutDirty) return;
+  private measure(): boolean {
+    if (!this.layoutDirty) return false;
 
     const style = getComputedStyle(this.root);
     const paddingX =
@@ -217,8 +275,15 @@ export class BarChartRenderer {
     const paddingY =
       Number.parseFloat(style.paddingTop) +
       Number.parseFloat(style.paddingBottom);
-    this.width = Math.max(240, this.root.clientWidth - paddingX);
-    this.height = Math.max(160, this.root.clientHeight - paddingY);
+    const contentWidth = this.root.clientWidth - paddingX;
+    const contentHeight = this.root.clientHeight - paddingY;
+    this.width = Number.isFinite(contentWidth)
+      ? Math.max(240, contentWidth)
+      : 240;
+    this.height = Number.isFinite(contentHeight)
+      ? Math.max(160, contentHeight)
+      : 160;
     this.layoutDirty = false;
+    return true;
   }
 }

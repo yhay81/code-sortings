@@ -39,7 +39,7 @@ const initialize = (): void => {
   translateDocument();
 
   const elements = bindAppElements();
-  const projector = new Projector();
+  const projector = new Projector(elements);
   const runner = new PythonRunner();
   const editor = new SortingCodeEditor(
     elements.editor,
@@ -298,6 +298,7 @@ const initialize = (): void => {
   window.addEventListener("beforeunload", () => runner.dispose());
   const resizeObserver = new ResizeObserver(() => projector.resize());
   resizeObserver.observe(elements.log);
+  resizeObserver.observe(elements.editor);
 
   setStatus(() => t("status.enginePreparing"), "working");
   void runner

@@ -9,8 +9,8 @@ import { zhCN } from "./locales/zh-CN";
 
 export type { TranslationKey } from "./locales/ja";
 export const SUPPORTED_LOCALES = [
-  { code: "ja", label: "日本語" },
   { code: "en", label: "English" },
+  { code: "ja", label: "日本語" },
   { code: "zh-CN", label: "简体中文" },
   { code: "es", label: "Español" },
   { code: "pt-BR", label: "Português" },

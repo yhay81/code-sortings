@@ -96,6 +96,26 @@ describe("BarChartRenderer", () => {
     expect(root.querySelectorAll("text")).toHaveLength(4);
   });
 
+  test("does not rewrite unchanged bar attributes between frames", () => {
+    const root = document.querySelector<HTMLElement>("#log");
+    if (!root) throw new Error("test root missing");
+    const renderer = new BarChartRenderer(root);
+
+    renderer.render(picture([3, 1, 2]), 1, 0);
+    const firstBar = root.querySelector<SVGRectElement>("rect");
+    if (!firstBar) throw new Error("test bar missing");
+    const setAttribute = firstBar.setAttribute.bind(firstBar);
+    const writes: string[] = [];
+    firstBar.setAttribute = ((name: string, value: string) => {
+      writes.push(name);
+      setAttribute(name, value);
+    }) as typeof firstBar.setAttribute;
+
+    renderer.render(picture([3, 1, 2]), 2, 0);
+
+    expect(writes).toEqual([]);
+  });
+
   test("removes labels for large arrays and clears empty charts", () => {
     const root = document.querySelector<HTMLElement>("#log");
     if (!root) throw new Error("test root missing");

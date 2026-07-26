@@ -31,6 +31,8 @@ export interface AppElements {
   operationTitle: HTMLElement;
   patternHint: HTMLParagraphElement;
   patternSelect: HTMLSelectElement;
+  playIcon: HTMLElement;
+  playLabel: HTMLElement;
   resetButton: HTMLButtonElement;
   sourcePosition: HTMLElement;
   speedSelect: HTMLSelectElement;
@@ -68,6 +70,8 @@ export const bindAppElements = (): AppElements => ({
   operationTitle: requiredElement("#operation-explanation"),
   patternHint: requiredElement("#pattern-hint"),
   patternSelect: requiredElement("#pattern-select"),
+  playIcon: requiredElement("#play-icon"),
+  playLabel: requiredElement("#play-label"),
   resetButton: requiredElement("#reset-button"),
   sourcePosition: requiredElement("#editor-source-position"),
   speedSelect: requiredElement("#speed"),
