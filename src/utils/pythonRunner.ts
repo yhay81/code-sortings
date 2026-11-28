@@ -19,9 +19,7 @@ interface RunnerBootErrorMessage {
 }
 
 type RunnerMessage =
-  | RunnerReadyMessage
-  | RunnerResultMessage
-  | RunnerBootErrorMessage;
+  RunnerReadyMessage | RunnerResultMessage | RunnerBootErrorMessage;
 
 interface ActiveRun {
   id: number;
